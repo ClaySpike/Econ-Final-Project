@@ -9,9 +9,9 @@ class App extends Component {
     this.state = {
       hexGrid: new Array(10),
     };
-    for(let i = 0; i < this.state.hexGrid.length; i++){
+    for(let i = 0; i < this.state.hexGrid.length; i++){//rows
       this.state.hexGrid[i] = new Array(10);
-      for(let j = 0; j < this.state.hexGrid[i].length; j++){
+      for(let j = 0; j < this.state.hexGrid[i].length; j++){//cols
         this.state.hexGrid[i][j] = {
           name: "Number " + (i + j),
         };
@@ -21,12 +21,14 @@ class App extends Component {
 
   render() {
     return (
-      <div className="HexGrid">
-        <div className="HexRow">{this.state.hexGrid.map((i) => {
-          return <div className={"HexCol Even"}>{this.state.hexGrid.map(() => {
+      <div>
+        <div class="grid-container">
+        {this.state.hexGrid.map((value) => {//row
+          return <div>{value.map(() => {//col
             return <Hexagon></Hexagon>
           })}</div>
-        })}</div>
+        })}
+        </div>
       </div>
     );
   }
