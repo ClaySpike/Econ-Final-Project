@@ -1,13 +1,19 @@
-.App {
-  text-align: center;
+body {
+  background: #282c34;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.HexGrid {
   display: flex;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+.HexRow {
+  display: inherit;
+  flex-direction: row;
+}
+
+.HexCol {
+  display: inherit;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
 }

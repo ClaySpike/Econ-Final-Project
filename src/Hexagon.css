@@ -1,55 +1,10 @@
 .hex {
     color: #6C6; 
-    font-size: 30vw;
+    flex: 1 1 auto;
+    font-size: 10vw;
+    margin: -50px -10px;
     -webkit-user-select: none; /* Safari */        
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* IE10+/Edge */
     user-select: none; /* Standard */
 }
-
-
-
-/*
-.hex {
-    position: relative;
-    width: 50vw; 
-    height: calc(50vw * 0.57735026919);
-    background-color: #64C7CC;
-    margin: 86.60px 0;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-  }
-  
-  .hex:before,
-  .hex:after {
-    -webkit-transform: scaleY(0.5774) rotate(-45deg);
-    -ms-transform: scaleY(0.5774) rotate(-45deg);
-    transform: scaleY(0.5774) rotate(-45deg);
-    content: "";
-    position: absolute;
-    z-index: 1;
-    width: calc(50vw * 0.7071);
-    height: calc(50vw * 0.7071);
-    background-color: inherit;
-    left: calc((50vw - 50vw)/2);
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-  }
-  
-  .hex:before {
-    top: calc(50vw * -0.35355333333);
-  }
-  
-  .hex:after {
-    bottom: calc(50vw * -0.3535875);
-  }
-  
-  .hex span {
-    display: block;
-    position: absolute;
-    top: 0px;
-    left: 0;
-    width: 50vw;
-    height: calc(50vw * 0.57735026919);
-    z-index: 2;
-    background: inherit;
-  }
-  */
