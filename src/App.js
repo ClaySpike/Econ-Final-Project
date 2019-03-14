@@ -24,8 +24,13 @@ class App extends Component {
       <div>
         <div class="grid-container">
         {this.state.hexGrid.map((value) => {//row
-          return <div>{value.map(() => {//col
-            return <Hexagon></Hexagon>
+          return <div>{value.map((i) => {//col
+            if(i == 0){
+              return <Hexagon class="evenRow"></Hexagon>
+            }
+            else{
+              return <Hexagon></Hexagon>
+            }
           })}</div>
         })}
         </div>
