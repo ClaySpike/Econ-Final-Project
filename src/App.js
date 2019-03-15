@@ -6,7 +6,7 @@ class App extends Component {
     super(props);
 
     this.state = {
-      hexGrid: new Array(6),
+      hexGrid: new Array(9),
     };
     for(let i = 0; i < this.state.hexGrid.length; i++){
       if(i % 2 === 0){
@@ -39,16 +39,7 @@ class App extends Component {
 
   render() {
     return (
-      <ul id="hexGrid">{ this.giveHexes() }
-        {/*<li class="hex">
-          <div class="hexIn">
-            <div class="hexLink">
-              <h1>This is a title</h1>
-              <p>Some sample text about the article this hexagon leads to</p>
-            </div>
-          </div>
-        </li>*/}
-      </ul>
+      <ul id="hexGrid">{ this.giveHexes() }</ul>
     );
   }
 }
