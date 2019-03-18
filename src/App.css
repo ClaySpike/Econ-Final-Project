@@ -7,11 +7,31 @@ body {
   background: #263238;
 }
 
+.App {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.dataContainer {
+  display: inherit;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 1% 1%;
+  color:white;
+}
+
+.title {
+  text-decoration: underline;
+}
+
+/*          HEXAGON THINGS           */
+
 #hexGrid {
   display: flex;
   flex-wrap: wrap;
   width: 70%;
-  margin: 0 auto;
+  margin: 0 0;
   overflow: hidden;
   font-family: 'Raleway', sans-serif;
   font-size: 15px;
@@ -50,6 +70,14 @@ body {
   outline:1px solid transparent; /* fix for jagged edges in FF on hover transition */
 }
 
+.colorGreen * {
+  background: #4CAF50;
+}
+
+.colorBrown * {
+  background: #795548;
+}
+
 .hexLink {
     display:block;
     width: 100%;
@@ -78,16 +106,16 @@ body {
   width: 100%;
   padding: 5%;
   box-sizing:border-box;
-  background-color: rgba(0, 128, 128, 0.8);
+  background-color: #546E7A;
   font-weight: 300;
-  -webkit-transition:  -webkit-transform .2s ease-out, opacity .3s ease-out;
-          transition:          transform .2s ease-out, opacity .3s ease-out;
+  -webkit-transition:  -webkit-transform .2s ease-out, opacity .2s ease-out;
+          transition:          transform .2s ease-out, opacity .2s ease-out;
 }
 
 .hex h1 {
   bottom: 50%;
   padding-top:50%;
-  font-size: 1.5em;
+  font-size: 1em;
   z-index: 1;
   -webkit-transform:translate3d(0,-100%,0);
       -ms-transform:translate3d(0,-100%,0);
@@ -107,6 +135,7 @@ body {
 .hex p {
   top: 50%;
   padding-bottom:50%;
+  font-size: .6em;
   -webkit-transform:translate3d(0,100%,0);
       -ms-transform:translate3d(0,100%,0);
           transform:translate3d(0,100%,0);
