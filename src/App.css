@@ -16,5 +16,34 @@ body {
 /* HEX V5 */
 
 #grid {
-  width: 70%
+  width: 60%;
+  margin-bottom: 1.75%;
+}
+
+.hex {
+  margin-bottom: -3%;
+}
+
+.hex:nth-child(20n + 11) {
+  margin-left: 4.75%;
+}
+
+.hexStyle {
+  stroke-width: 5%;
+}
+
+.hexBackgroundStroke {
+  stroke: #263238;
+}
+
+.hexColorGreen {
+  fill: #4CAF50;
+}
+
+.hexColorBrown {
+  fill: #795548;
+}
+
+.hexColorBlue {
+  fill: #50A6C2;
 }
