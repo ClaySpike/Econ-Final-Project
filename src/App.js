@@ -8,7 +8,10 @@ class App extends Component {
     this.state = {
       hexGrid: new Array(9),
       nations: [{ ownedLocations: [] }],
+      width: 0, 
+      height: 0,
     };
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
     /* START GRID INITIALIZATION */
     for(let i = 0; i < this.state.hexGrid.length; i++){
       if(i % 2 === 0){
@@ -111,20 +114,55 @@ class App extends Component {
     return arr;
   }
 
+  componentDidMount() {
+    this.updateWindowDimensions();
+    window.addEventListener('resize', this.updateWindowDimensions);
+  }
+  
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateWindowDimensions);
+  }
+  
+  updateWindowDimensions() {
+    this.setState({ width: window.innerWidth, height: window.innerHeight });
+  }
+
+  getHexWidth(){
+    return this.state.width / 15
+  }
+
+  getHexHeight(width){
+    return width * 2 * Math.tan(Math.PI / 6)
+  }
+
+  getHexPoints(){
+    let halfWidth = this.getHexWidth()/2
+    let topHalf = Math.tan(Math.PI/6)*this.getHexWidth()/2
+    let bottomHalf = 3*Math.tan(Math.PI/6)*this.getHexWidth()/2
+    return halfWidth + ", " + 0 + " " +
+    this.getHexWidth() + ", " + topHalf + " " + 
+    this.getHexWidth() + ", " + bottomHalf + " " + 
+    halfWidth + ", " + this.getHexHeight(this.getHexWidth()) + " " +
+    0 + ", " + bottomHalf + " " +
+    0 + ", " + topHalf
+  }
+  /*
+  (this.getHexWidth()/2) + ", " + 0 + " " +
+    this.getHexWidth() + ", " + (Math.tan(Math.PI/6)*this.getHexWidth()/2) + " " + 
+    this.getHexWidth() + ", " + (3*Math.tan(Math.PI/6)*this.getHexWidth()/2) + " " + 
+    (this.getHexWidth()/2) + ", " + this.getHexHeight() + " " +
+    0 + ", " + (3*Math.tan(Math.PI/6)*this.getHexWidth()/2) + " " +
+    0 + ", " + (Math.tan(Math.PI/6)*this.getHexWidth()/2)
+  */
+
   render() {
     return (
       <div className="App">
-        <ul id="hexGrid">{ this.giveHexes() }</ul>
-        <div className="dataContainer">
-          <h1 className="title">
-            Mesothelioma:
-          </h1>
-          <h2 className="title">
-            subheader:
-          </h2>
-          <p>
-            Normal text goes here
-          </p>
+        <div id="grid">
+          <svg height={this.getHexHeight(this.getHexWidth())} width={this.getHexWidth()}>
+            <polygon points= {this.getHexPoints()}
+            style={{ fill: "lime", stroke: "purple", strokeWidth: "5" }} />
+          </svg>
         </div>
       </div>
     );
