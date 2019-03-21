@@ -9,19 +9,39 @@ class App extends Component {
       width: 0, 
       height: 0,
       hexGrid: new Array(10),
+      nations: new Array(1),
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
+
     for(let i = 0; i < this.state.hexGrid.length; i++){
       this.state.hexGrid[i] = new Array(this.state.hexGrid.length)
+    }
+
+    for(let i = 0; i < this.state.nations.length; i++){
+      let x = Math.floor(Math.random() * this.state.hexGrid.length)
+      let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
+      this.state.nations[i] = {
+        claims: [[x, y]],
+      }
+    }
+
+    for(let i = 0; i < this.state.hexGrid.length; i++){
       for(let j = 0; j < this.state.hexGrid[i].length; j++){
-        let w = this.generateWater(10)
+        let w = this.generateWater(6)
         let c = this.generateOther(w)
         let m = this.generateOther(w)
+        let cb = -1
+        for(let q = 0; q < this.state.nations.length; q++){
+          if(this.state.nations[q].claims[0][0] === i && this.state.nations[q].claims[0][1] === j){
+            cb = q
+          }
+        }
         this.state.hexGrid[i][j] = {
           water: w,
           cropLevel: c,
           mineLevel: m,
-          div: this.setHexDiv(w, c, m),
+          claimedBy: cb,
+          div: this.setHexDiv(w, c, m, cb),
         }
       }
     }
@@ -30,6 +50,7 @@ class App extends Component {
   componentDidMount() {
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
+    this.updateDiv()
   }
   
   componentWillUnmount() {
@@ -41,10 +62,7 @@ class App extends Component {
   }
 
   generateWater(chance){
-    if(Math.floor(Math.random() * chance) == 0){
-      return true
-    }
-    return false
+    return Math.floor(Math.random() * chance) === 0
   }
 
   generateOther(water){
@@ -54,26 +72,50 @@ class App extends Component {
     return 0
   }
 
-  setHexDiv(water, cropLevel, mineLevel){
-    if(water){
-      return  <svg className="hex" width="9.5%" viewBox={"0 0 " + this.getHexWidth() + " " + this.getHexHeight()}>
-                <polygon points= {this.getHexPoints()} className="hexStyle hexColorBlue hexBackgroundStroke"/>
-              </svg>
-    }
-    else if(cropLevel > mineLevel){
-      return  <svg className="hex" width="9.5%" viewBox={"0 0 " + this.getHexWidth() + " " + this.getHexHeight()}>
-                <polygon points= {this.getHexPoints()} className="hexStyle hexColorGreen hexBackgroundStroke"/>
-              </svg>
-    }
-    else if(cropLevel < mineLevel){
-      return  <svg className="hex" width="9.5%" viewBox={"0 0 " + this.getHexWidth() + " " + this.getHexHeight()}>
-                <polygon points= {this.getHexPoints()} className="hexStyle hexColorBrown hexBackgroundStroke"/>
-              </svg>
+  setHexDiv(water, cropLevel, mineLevel, claimed){
+    if(claimed > -1){
+      if(water){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBlue hexStrokeRed"/>
+                </svg>
+      }
+      else if(cropLevel > mineLevel){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorGreen hexStrokeRed"/>
+                </svg>
+      }
+      else if(cropLevel < mineLevel){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBrown hexStrokeRed"/>
+                </svg>
+      }
+      else{
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexStrokeRed"/>
+                </svg>
+      }
     }
     else{
-      return  <svg className="hex" width="9.5%" viewBox={"0 0 " + this.getHexWidth() + " " + this.getHexHeight()}>
-                <polygon points= {this.getHexPoints()} className="hexStyle hexBackgroundStroke"/>
-              </svg>
+      if(water){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBlue hexStrokeBackground"/>
+                </svg>
+      }
+      else if(cropLevel > mineLevel){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorGreen hexStrokeBackground"/>
+                </svg>
+      }
+      else if(cropLevel < mineLevel){
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBrown hexStrokeBackground"/>
+                </svg>
+      }
+      else{
+        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                  <polygon points= {this.getHexPoints()} className="hexStyle hexStrokeBackground"/>
+                </svg>
+      }
     }
   }
 
@@ -100,17 +142,23 @@ class App extends Component {
     0 + ", " + topHalf
   }
 
-  getHexes(){
-    let arr = []
+  updateDiv(){
     for(let i = 0; i < this.state.hexGrid.length; i++){
       for(let j = 0; j < this.state.hexGrid[i].length; j++){
-        this.state.hexGrid[i][j].div = this.setHexDiv(
-          this.state.hexGrid[i][j].water,
-          this.state.hexGrid[i][j].cropLevel,
-          this.state.hexGrid[i][j].mineLevel
-        )
+        this.setState((state)=>{
+          state.hexGrid[i][j].div = this.setHexDiv(
+            state.hexGrid[i][j].water,
+            state.hexGrid[i][j].cropLevel,
+            state.hexGrid[i][j].mineLevel,
+            state.hexGrid[i][j].claimedBy,
+          )
+        })
       }
     }
+  }
+
+  getHexes(){
+    let arr = []
     for(let i = 0; i < this.state.hexGrid.length; i++){
       arr = arr.concat(this.state.hexGrid[i])
     }
