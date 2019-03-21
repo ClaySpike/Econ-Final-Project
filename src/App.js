@@ -15,36 +15,28 @@ class App extends Component {
 
     for(let i = 0; i < this.state.hexGrid.length; i++){
       this.state.hexGrid[i] = new Array(this.state.hexGrid.length)
-    }
-
-    for(let i = 0; i < this.state.nations.length; i++){
-      let x = Math.floor(Math.random() * this.state.hexGrid.length)
-      let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
-      this.state.nations[i] = {
-        claims: [[x, y]],
-      }
-    }
-
-    for(let i = 0; i < this.state.hexGrid.length; i++){
       for(let j = 0; j < this.state.hexGrid[i].length; j++){
         let w = this.generateWater(6)
         let c = this.generateOther(w)
         let m = this.generateOther(w)
         let cb = -1
-        for(let q = 0; q < this.state.nations.length; q++){
-          if(this.state.nations[q].claims[0][0] === i && this.state.nations[q].claims[0][1] === j){
-            cb = q
-          }
-        }
+        
         this.state.hexGrid[i][j] = {
           water: w,
           cropLevel: c,
           mineLevel: m,
           claimedBy: cb,
-          div: this.setHexDiv(w, c, m, cb),
+          div: this.setHexDiv(
+            w, 
+            c, 
+            m, 
+            cb,
+          ),
         }
       }
     }
+
+    this.findNationsStart()
   }
 
   componentDidMount() {
@@ -59,6 +51,22 @@ class App extends Component {
   
   updateWindowDimensions() {
     this.setState({ width: window.innerWidth, height: window.innerHeight });
+  }
+
+  findNationsStart(){
+    for(let i = 0; i < this.state.nations.length; i++){
+      let x = Math.floor(Math.random() * this.state.hexGrid.length)
+      let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
+      if(this.state.hexGrid[x][y].water){
+        this.findNationsStart()
+      }
+      else{
+        this.state.hexGrid[x][y].claimedBy = i
+        this.state.nations[i] = {
+          claims: [[x, y]],
+        }
+      }
+    }
   }
 
   generateWater(chance){
