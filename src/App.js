@@ -73,49 +73,33 @@ class App extends Component {
   }
 
   setHexDiv(water, cropLevel, mineLevel, claimed){
-    if(claimed > -1){
-      if(water){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBlue hexStrokeRed"/>
-                </svg>
-      }
-      else if(cropLevel > mineLevel){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorGreen hexStrokeRed"/>
-                </svg>
-      }
-      else if(cropLevel < mineLevel){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBrown hexStrokeRed"/>
-                </svg>
-      }
-      else{
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexStrokeRed"/>
-                </svg>
-      }
+    let strokeColor = ""
+    if(claimed === -1){
+      strokeColor = "hexStrokeBackground"
+    }
+    else if(claimed === 0){
+      strokeColor = "hexStrokeWhite"
+    }
+
+    if(water){
+      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                <polygon points= {this.getHexPoints()} className={"hexStyle hexColorBlue " + strokeColor}/>
+              </svg>
+    }
+    else if(cropLevel > mineLevel){
+      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                <polygon points= {this.getHexPoints()} className={"hexStyle hexColorGreen " + strokeColor}/>
+              </svg>
+    }
+    else if(cropLevel < mineLevel){
+      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                <polygon points= {this.getHexPoints()} className={"hexStyle hexColorBrown " + strokeColor}/>
+              </svg>
     }
     else{
-      if(water){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBlue hexStrokeBackground"/>
-                </svg>
-      }
-      else if(cropLevel > mineLevel){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorGreen hexStrokeBackground"/>
-                </svg>
-      }
-      else if(cropLevel < mineLevel){
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexColorBrown hexStrokeBackground"/>
-                </svg>
-      }
-      else{
-        return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
-                  <polygon points= {this.getHexPoints()} className="hexStyle hexStrokeBackground"/>
-                </svg>
-      }
+      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+                <polygon points= {this.getHexPoints()} className={"hexStyle " + strokeColor}/>
+              </svg>
     }
   }
 
