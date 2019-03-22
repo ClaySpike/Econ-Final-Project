@@ -81,11 +81,32 @@ class App extends Component {
     console.log("clicky click click click")
     let coords = e.target.parentElement.getAttribute("data-position")
     console.log(coords)
+    let works = false;
     if(coords !== null){
-      this.setState((state) => {
-        state.hexGrid[coords[0]][coords[2]].claimedBy = 0
-      })
-      this.forceUpdate()
+      for(let j = 0; j < this.state.nations[0].claims.length; j++){
+        let x = this.state.nations[0].claims[j][0] - coords[0]
+        let y = this.state.nations[0].claims[j][1] - coords[2]
+        if(x === 0 && (y === -1 || y === 1)){//same row left or right
+          works = true;
+        }
+        else if(coords[0] % 2 === 0){//even row
+          if((x === 1 || x === -1) && (y === -1 || y === 0)){
+            works = true;
+          }
+        }
+        else{//odd row
+          if((x === 1 || x === -1) && (y === 0 || y === 1)){
+            works = true;
+          }
+        }
+      }
+      if(works){
+        this.setState((state) => {
+          state.hexGrid[coords[0]][coords[2]].claimedBy = 0
+          state.nations[0].claims[state.nations[0].claims.length] = [coords[0], coords[2]]
+        })
+        this.forceUpdate()
+      }
     }
   }
 
