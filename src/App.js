@@ -27,6 +27,8 @@ class App extends Component {
           mineLevel: m,
           claimedBy: cb,
           div: this.setHexDiv(
+            i,
+            j,
             w, 
             c, 
             m, 
@@ -80,7 +82,7 @@ class App extends Component {
     return 0
   }
 
-  setHexDiv(water, cropLevel, mineLevel, claimed){
+  setHexDiv(x, y, water, cropLevel, mineLevel, claimed){
     let strokeColor = ""
     if(claimed === -1){
       strokeColor = "hexStrokeBackground"
@@ -90,25 +92,30 @@ class App extends Component {
     }
 
     if(water){
-      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+      return  <svg key={x + " " + y} data-position={[x,y]} onClick={this.handleClick} className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
                 <polygon points= {this.getHexPoints()} className={"hexStyle hexColorBlue " + strokeColor}/>
               </svg>
     }
     else if(cropLevel > mineLevel){
-      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+      return  <svg key={x + " " + y} data-position={[x,y]} onClick={this.handleClick} className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
                 <polygon points= {this.getHexPoints()} className={"hexStyle hexColorGreen " + strokeColor}/>
               </svg>
     }
     else if(cropLevel < mineLevel){
-      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+      return  <svg key={x + " " + y} data-position={[x,y]} onClick={this.handleClick} className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
                 <polygon points= {this.getHexPoints()} className={"hexStyle hexColorBrown " + strokeColor}/>
               </svg>
     }
     else{
-      return  <svg className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
+      return  <svg key={x + " " + y} data-position={[x,y]} onClick={this.handleClick} className="hex" width="9.5%" viewBox={(-this.getHexWidth()*((13/12)-1)/2) + " " + (-this.getHexWidth()*((13/12)-1)/2) + " " + + (this.getHexWidth()*13/12) + " " + (this.getHexHeight()*13/12)}>
                 <polygon points= {this.getHexPoints()} className={"hexStyle " + strokeColor}/>
               </svg>
     }
+  }
+
+  handleClick(e) {
+    e.preventDefault();
+    console.log(e.target.parentElement.getAttribute("data-position"))
   }
 
   getHexWidth(){
@@ -139,6 +146,8 @@ class App extends Component {
       for(let j = 0; j < this.state.hexGrid[i].length; j++){
         this.setState((state)=>{
           state.hexGrid[i][j].div = this.setHexDiv(
+            i,
+            j,
             state.hexGrid[i][j].water,
             state.hexGrid[i][j].cropLevel,
             state.hexGrid[i][j].mineLevel,
