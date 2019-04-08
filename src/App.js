@@ -197,12 +197,6 @@ class App extends Component {
     }
   }
 
-  displayPos(){
-    let x = Number(this.state.currentCoords[0]) + 1;
-    let y = Number(this.state.currentCoords[1]) + 1;
-    return x + ", " + y 
-  }
-
   render() {
     return (
       <div className="App">
@@ -211,11 +205,27 @@ class App extends Component {
             return this.getHexDiv(value, "9.5%", false)
           })}
         </div>
-        <div>
+        <div className="summary">
           <div className="hexPosContainer">
-            {this.getHexDiv(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]], "10", true)}
-            <h1 className="heading">
-              {this.displayPos()}
+            <div>
+              {this.getHexDiv(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]], "10", true)}
+            </div>
+            <h1 className="white">
+              {Number(this.state.currentCoords[1]) + 1 + ", " + Number(Number(this.state.currentCoords[0]) + 1)}
+            </h1>
+          </div>
+          <div className="white dataPadding">
+            <h1>
+              {"Water: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].water}
+            </h1>
+            <h1>
+              {"Crop Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].cropLevel * 10))}
+            </h1>
+            <h1>
+              {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10))}
+            </h1>
+            <h1>
+              {"Current Owner: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy}
             </h1>
           </div>
         </div>

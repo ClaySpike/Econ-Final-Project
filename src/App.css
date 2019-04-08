@@ -17,7 +17,7 @@ body {
 
 #grid {
   width: 65%;
-  padding-bottom: 1.75%;
+  margin: .5vw;
 }
 
 .hex {
@@ -52,7 +52,7 @@ body {
   fill: #50A6C2;
 }
 
-.heading {
+.white {
   color: white
 }
 
@@ -64,4 +64,14 @@ body {
 
 .hexSP {
   margin-bottom: -75%;
+}
+
+.summary {
+  display: flex;
+  flex-direction: row;
+  justify-items: flex-start;
+}
+
+.dataPadding {
+  margin: .5vw;
 }
