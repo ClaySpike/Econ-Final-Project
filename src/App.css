@@ -40,6 +40,18 @@ body {
   stroke: white;
 }
 
+.hexStrokeCyan {
+  stroke: #00FFFF;
+}
+
+.hexStrokeFuscia {
+  stroke:	#FF00FF;
+}
+
+.hexStrokeCrimson {
+  stroke: #DC143C
+}
+
 .hexColorGreen {
   fill: #4CAF50;
 }
@@ -56,7 +68,7 @@ body {
   color: white
 }
 
-.hexPosContainer {
+.hexSummaryContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,4 +86,53 @@ body {
 
 .dataPadding {
   margin: .5vw;
+}
+
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  width: 35%;
+}
+
+.button {
+  color: white;
+  width: 45%;
+  margin: 2.5%;
+  border-radius: .75vw;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+
+.cancelColor {
+  background-color: #f44336;
+}
+
+.cancelColor:hover {
+  background-color: #b9352b;
+}
+
+.confirmColor {
+  background-color: #4CAF50;
+}
+
+.confirmColorH:hover {
+  background-color: rgb(59, 138, 61);
+}
+
+.disabled {
+  opacity: .5;
+}
+
+.unselectable { 
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }

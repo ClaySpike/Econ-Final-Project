@@ -9,8 +9,10 @@ class App extends Component {
       width: 0, 
       height: 0,
       hexGrid: new Array(10),
-      nations: new Array(1),
+      nations: new Array(4),
       currentCoords: [0,0],
+      summaryOpen: false,
+      currentNation: 0,
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 
@@ -32,12 +34,21 @@ class App extends Component {
         }
       }
     }
+
+    for(let i = 0; i < this.state.nations.length; i++){
+      this.state.nations[i] = {
+        claims: [],
+      }
+    }
   }
 
   componentDidMount() {
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
-    this.findNationsStart()
+    let unusable = []
+    for(let i = 0; i < this.state.nations.length; i++){
+      unusable = this.findNationsStart(i, unusable)
+    }
   }
   
   componentWillUnmount() {
@@ -48,22 +59,20 @@ class App extends Component {
     this.setState({ width: window.innerWidth, height: window.innerHeight });
   }
 
-  findNationsStart(){
-    for(let i = 0; i < this.state.nations.length; i++){
-      let x = Math.floor(Math.random() * this.state.hexGrid.length)
-      let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
-      if(this.state.hexGrid[x][y].water){
-        this.findNationsStart()
-      }
-      else{
-        this.setState((state) => {
-          state.hexGrid[x][y].claimedBy = i
-          state.nations[i] = {
-            claims: [[x, y]],
-          }
-        })
-      }
+  findNationsStart(nation, unusable){
+    let x = Math.floor(Math.random() * this.state.hexGrid.length)
+    let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
+    unusable.push([x,y])
+    if(this.state.hexGrid[x][y].water){
+      this.findNationsStart(nation, unusable)
     }
+    else{
+      this.setState((state) => {
+        state.hexGrid[x][y].claimedBy = nation
+        state.nations[nation].claims = [[x, y]]
+      })
+    }
+    return unusable
   }
 
   generateWater(chance){
@@ -80,44 +89,92 @@ class App extends Component {
   handleClick(e) {
     e.preventDefault()
     let coords = e.target.parentElement.getAttribute("data-position")
+    if(coords != null){
+      this.setState({
+        summaryOpen: true
+      })
+      this.setSummary(coords)
+    }
+  }
+
+  cancelClick(e) {
+    e.preventDefault()
+    this.setState({
+      summaryOpen: false
+    })
+  }
+
+  handleClaim(e) {
+    e.preventDefault()
+    if(this.checkClaim(this.state.currentCoords, this.state.currentNation)){
+      this.setState((state) => {
+        state.hexGrid[state.currentCoords[state.currentNation]][state.currentCoords[1]].claimedBy = state.currentNation
+        state.nations[state.currentNation].claims[state.nations[state.currentNation].claims.length] = state.currentCoords
+      })
+      this.forceUpdate()
+      this.cancelClick(e)
+    }
+  }
+
+  checkClaim(coords, nation){
     let works = false
+    if(coords != null && this.state.nations[nation] != null){
+      for(let j = 0; j < this.state.nations[nation].claims.length; j++){
+        if(!(this.state.nations[nation].claims[j][0] === coords[0] && this.state.nations[nation].claims[j][1] === coords[1])){
+          let x = this.state.nations[nation].claims[j][0] - coords[0]
+          let y = this.state.nations[nation].claims[j][1] - coords[1]
+          if(x === 0 && (y === -1 || y === 1)){//same row left or right
+            works = true;
+          }
+          else if(coords[0] % 2 === 0){//even row
+            if((x === 1 || x === -1) && (y === -1 || y === 0)){
+              works = true;
+            }
+          }
+          else{//odd row
+            if((x === 1 || x === -1) && (y === 0 || y === 1)){
+              works = true;
+            }
+          }
+        }
+        else {
+          console.log("beep")
+          return false;
+        }
+      }
+    }
+    return works;
+  }
+
+  claimCSS() {
+    if(this.state.currentCoords != null){
+      if(this.checkClaim(this.state.currentCoords, this.state.currentNation)){
+        return "button confirmColor confirmColorH"
+      }
+    }
+    return "button confirmColor disabled"
+  }
+
+  cancelCSS() {
+    if(this.state.summaryOpen){
+      return "button cancelColor"
+    }
+    return "button cancelColor disabled"
+  }
+
+  setSummary(coords){
     if(coords !== null){
-      for(let j = 0; j < this.state.nations[0].claims.length; j++){
-        let x = this.state.nations[0].claims[j][0] - coords[0]
-        let y = this.state.nations[0].claims[j][1] - coords[2]
-        if(x === 0 && (y === -1 || y === 1)){//same row left or right
-          works = true;
-        }
-        else if(coords[0] % 2 === 0){//even row
-          if((x === 1 || x === -1) && (y === -1 || y === 0)){
-            works = true;
-          }
-        }
-        else{//odd row
-          if((x === 1 || x === -1) && (y === 0 || y === 1)){
-            works = true;
-          }
-        }
-      }
-      if(works){
-        this.setState((state) => {
-          state.hexGrid[coords[0]][coords[2]].claimedBy = 0
-          state.nations[0].claims[state.nations[0].claims.length] = [coords[0], coords[2]]
-        })
-        this.forceUpdate()
-      }
+      this.setState((state) => {
+        state.currentCoords = [coords[0], coords[2]]
+      })
+      this.forceUpdate()
     }
   }
 
   handleMouseOver(e){
     e.preventDefault()
-    let coords =  e.target.parentElement.getAttribute("data-position")
-    if(coords !== null){
-      console.log(coords)
-      this.setState((state) => {
-        state.currentCoords = [coords[0], coords[2]]
-      })
-      this.forceUpdate()
+    if(!this.state.summaryOpen){
+      this.setSummary(e.target.parentElement.getAttribute("data-position"))
     }
   }
 
@@ -160,6 +217,15 @@ class App extends Component {
     }
     else if(value.claimedBy === 0){
       strokeColor = "hexStrokeWhite"
+    }
+    else if(value.claimedBy === 1){
+      strokeColor = "hexStrokeCyan"
+    }
+    else if(value.claimedBy === 2){
+      strokeColor = "hexStrokeFuscia"
+    }
+    else if(value.claimedBy === 3){
+      strokeColor = "hexStrokeCrimson"
     }
 
     if(value.water){
@@ -205,27 +271,45 @@ class App extends Component {
             return this.getHexDiv(value, "9.5%", false)
           })}
         </div>
-        <div className="summary">
-          <div className="hexPosContainer">
-            <div>
-              {this.getHexDiv(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]], "10", true)}
+        <div className="sidePanel white">
+          <div className="summary">
+            <div className="hexSummaryContainer">
+              <div>
+                {this.getHexDiv(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]], "10", true)}
+              </div>
+              <h1 className="unselectable">
+                {Number(this.state.currentCoords[1]) + 1 + ", " + Number(Number(this.state.currentCoords[0]) + 1)}
+              </h1>
             </div>
-            <h1 className="white">
-              {Number(this.state.currentCoords[1]) + 1 + ", " + Number(Number(this.state.currentCoords[0]) + 1)}
-            </h1>
+            <div className="dataPadding">
+              <h1>
+                {"Water: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].water}
+              </h1>
+              <h1>
+                {"Crop Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].cropLevel * 10)/10)}
+              </h1>
+              <h1>
+                {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10)/10)}
+              </h1>
+              <h1>
+                {"Current Owner: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy}
+              </h1>
+            </div>
           </div>
-          <div className="white dataPadding">
+          <div>
+            <div className={this.claimCSS()} onClick={(e) => this.handleClaim(e)}>
+              <h1>Claim</h1>
+            </div>
+            <div className={this.cancelCSS()} onClick={(e) => this.cancelClick(e)}>
+              <h1>Cancel</h1>
+            </div>
+          </div>
+          <div>
             <h1>
-              {"Water: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].water}
+              {"Current Nation: " + this.state.currentNation}
             </h1>
             <h1>
-              {"Crop Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].cropLevel * 10))}
-            </h1>
-            <h1>
-              {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10))}
-            </h1>
-            <h1>
-              {"Current Owner: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy}
+              {"Total Nations: " + this.state.nations.length}
             </h1>
           </div>
         </div>
