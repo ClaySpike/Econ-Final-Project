@@ -64,8 +64,8 @@ class App extends Component {
     let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
     unusable.push([x,y])
     let bad = false
-    for(let i = 0; i < unusable.length; i++){
-      if(!bad && unusable[0] == x && unusable[1] == y){
+    for(let i = 0; i < unusable.length || bad; i++){
+      if(unusable[0] == x && unusable[1] == y){
         bad = true;
       }
     }
@@ -175,6 +175,21 @@ class App extends Component {
     return "button cancelColor disabled unselectable"
   }
 
+  borderCSS(nation) {
+    if(nation === 0){
+      return "borderWhite"
+    }
+    else if(nation === 1){
+      return "borderCyan"
+    }
+    else if(nation === 2){
+      return "borderFucia"
+    }
+    else if(nation === 3){
+      return "borderCrimson"
+    }
+  }
+
   setSummary(coords){
     if(coords !== null){
       this.setState((state) => {
@@ -189,6 +204,22 @@ class App extends Component {
     if(!this.state.summaryOpen){
       this.setSummary(e.target.parentElement.getAttribute("data-position"))
     }
+  }
+
+  getTotalCrop(nation){
+    let total = 0;
+    for(let i = 0; i < this.state.nations[nation].claims.length; i++){
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][this.state.nations[nation].claims[i][1]].cropLevel
+    }
+    return total
+  }
+
+  getTotalMine(nation){
+    let total = 0;
+    for(let i = 0; i < this.state.nations[nation].claims.length; i++){
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][this.state.nations[nation].claims[i][1]].mineLevel
+    }
+    return total
   }
 
   getHexWidth(){
@@ -309,7 +340,7 @@ class App extends Component {
               </h1>
             </div>
           </div>
-          <div>
+          <div className="buttonContainer">
             <div className={this.claimCSS()} onClick={(e) => this.handleClaim(e)}>
               <h1>Claim</h1>
             </div>
@@ -317,32 +348,25 @@ class App extends Component {
               <h1>Cancel</h1>
             </div>
           </div>
-          <div>
+          <div className="buttonContainer">
+            {this.state.nations.map((value, index) => {
+              return  <div className={"button unselectable nationButton " + this.borderCSS(index)} onClick={(e) => {this.changeNation(e, index)}}>
+                        <h1>
+                          {index + 1}
+                        </h1>
+                      </div>
+            })}
+          </div>
+          <div className={"nationInfoContainer " + this.borderCSS(this.state.currentNation)}>
             <h1>
               {"Current Nation: " + Number(this.state.currentNation + 1)}
             </h1>
-            <div className="nationButtonContainer">
-              {this.state.nations.map((value, index) => {
-                let backgroundColor = " borderBlack"
-                if(index === 0){
-                  backgroundColor = " borderWhite"
-                }
-                else if(index === 1){
-                  backgroundColor = " borderCyan"
-                }
-                else if(index === 2){
-                  backgroundColor = " borderFucia"
-                }
-                else if(index === 3){
-                  backgroundColor = " borderCrimson"
-                }
-                return  <div className={"button unselectable nationButton" + backgroundColor} onClick={(e) => {this.changeNation(e, index)}}>
-                          <h1>
-                            {index + 1}
-                          </h1>
-                        </div>
-              })}
-            </div>
+            <h1>
+              {"Crop Potential: " + (Math.round(this.getTotalCrop(this.state.currentNation)*10)/10)}
+            </h1>
+            <h1>
+              {"Mine Potential: " + (Math.round(this.getTotalMine(this.state.currentNation)*10)/10)}
+            </h1>
           </div>
         </div>
       </div>

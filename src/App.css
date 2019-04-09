@@ -97,6 +97,8 @@ body {
 .button {
   color: white;
   border-radius: .75vw;
+  margin: .45vw;
+  width: 100%;
   text-align: center;
   display: inline-block;
   cursor: pointer;
@@ -106,8 +108,6 @@ body {
 
 .cancelColor {
   background-color: #f44336;
-  margin: 2.5%;
-  width: 45%;
 }
 
 .cancelColorH:hover {
@@ -116,8 +116,6 @@ body {
 
 .confirmColor {
   background-color: #4CAF50;
-  margin: 2.5%;
-  width: 45%;
 }
 
 .confirmColorH:hover {
@@ -128,7 +126,7 @@ body {
   opacity: .5;
 }
 
-.nationButtonContainer {
+.buttonContainer {
   width: 100%;
   display: flex;
   flex-wrap: nowrap;
@@ -136,8 +134,14 @@ body {
 
 .nationButton {
   border: .25vw solid;
-  margin: .45vw;
   width: 100%;
+}
+
+.nationInfoContainer {
+  margin: .45vw;
+  border: .25vw solid;
+  border-radius: .75vw;
+  padding: 0 .45vw .45vw .45vw;
 }
 
 .borderWhite {
