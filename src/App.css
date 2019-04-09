@@ -49,7 +49,7 @@ body {
 }
 
 .hexStrokeCrimson {
-  stroke: #DC143C
+  stroke: #DC143C;
 }
 
 .hexColorGreen {
@@ -96,30 +96,28 @@ body {
 
 .button {
   color: white;
-  width: 45%;
-  margin: 2.5%;
   border-radius: .75vw;
   text-align: center;
   display: inline-block;
   cursor: pointer;
   -webkit-transition-duration: 0.4s; /* Safari */
   transition-duration: 0.4s;
-  -webkit-user-select: none; /* Safari */        
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE10+/Edge */
-  user-select: none; /* Standard */
 }
 
 .cancelColor {
   background-color: #f44336;
+  margin: 2.5%;
+  width: 45%;
 }
 
-.cancelColor:hover {
+.cancelColorH:hover {
   background-color: #b9352b;
 }
 
 .confirmColor {
   background-color: #4CAF50;
+  margin: 2.5%;
+  width: 45%;
 }
 
 .confirmColorH:hover {
@@ -128,6 +126,42 @@ body {
 
 .disabled {
   opacity: .5;
+}
+
+.nationButtonContainer {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.nationButton {
+  border: .25vw solid;
+  margin: .45vw;
+  width: 100%;
+}
+
+.borderWhite {
+  border-color: white;
+}
+
+.borderCyan {
+  border-color: #00FFFF;
+}
+
+.borderFucia {
+  border-color: #FF00FF;
+}
+
+.borderCrimson {
+  border-color: #DC143C;
+}
+
+.borderBlack {
+  border-color: black;
+}
+
+.colorBlack {
+  color: black;
 }
 
 .unselectable { 

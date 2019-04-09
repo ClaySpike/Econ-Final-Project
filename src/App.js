@@ -63,7 +63,13 @@ class App extends Component {
     let x = Math.floor(Math.random() * this.state.hexGrid.length)
     let y = Math.floor(Math.random() * this.state.hexGrid[x].length)
     unusable.push([x,y])
-    if(this.state.hexGrid[x][y].water){
+    let bad = false
+    for(let i = 0; i < unusable.length; i++){
+      if(!bad && unusable[0] == x && unusable[1] == y){
+        bad = true;
+      }
+    }
+    if(this.state.hexGrid[x][y].water || bad){
       this.findNationsStart(nation, unusable)
     }
     else{
@@ -108,7 +114,7 @@ class App extends Component {
     e.preventDefault()
     if(this.checkClaim(this.state.currentCoords, this.state.currentNation)){
       this.setState((state) => {
-        state.hexGrid[state.currentCoords[state.currentNation]][state.currentCoords[1]].claimedBy = state.currentNation
+        state.hexGrid[state.currentCoords[0]][state.currentCoords[1]].claimedBy = state.currentNation
         state.nations[state.currentNation].claims[state.nations[state.currentNation].claims.length] = state.currentCoords
       })
       this.forceUpdate()
@@ -116,9 +122,16 @@ class App extends Component {
     }
   }
 
+  changeNation(e, nation) {
+    e.preventDefault()
+    this.setState({
+      currentNation: nation
+    })
+  }
+
   checkClaim(coords, nation){
     let works = false
-    if(coords != null && this.state.nations[nation] != null){
+    if(coords != null && this.state.nations[nation] != null && this.state.hexGrid[coords[0]][coords[1]].claimedBy === -1){
       for(let j = 0; j < this.state.nations[nation].claims.length; j++){
         if(!(this.state.nations[nation].claims[j][0] === coords[0] && this.state.nations[nation].claims[j][1] === coords[1])){
           let x = this.state.nations[nation].claims[j][0] - coords[0]
@@ -149,17 +162,17 @@ class App extends Component {
   claimCSS() {
     if(this.state.currentCoords != null){
       if(this.checkClaim(this.state.currentCoords, this.state.currentNation)){
-        return "button confirmColor confirmColorH"
+        return "button confirmColor confirmColorH unselectable"
       }
     }
-    return "button confirmColor disabled"
+    return "button confirmColor disabled unselectable"
   }
 
   cancelCSS() {
     if(this.state.summaryOpen){
-      return "button cancelColor"
+      return "button cancelColor cancelColorH unselectable"
     }
-    return "button cancelColor disabled"
+    return "button cancelColor disabled unselectable"
   }
 
   setSummary(coords){
@@ -292,7 +305,7 @@ class App extends Component {
                 {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10)/10)}
               </h1>
               <h1>
-                {"Current Owner: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy}
+                {"Current Owner: " + Number(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy + 1)}
               </h1>
             </div>
           </div>
@@ -306,11 +319,30 @@ class App extends Component {
           </div>
           <div>
             <h1>
-              {"Current Nation: " + this.state.currentNation}
+              {"Current Nation: " + Number(this.state.currentNation + 1)}
             </h1>
-            <h1>
-              {"Total Nations: " + this.state.nations.length}
-            </h1>
+            <div className="nationButtonContainer">
+              {this.state.nations.map((value, index) => {
+                let backgroundColor = " borderBlack"
+                if(index === 0){
+                  backgroundColor = " borderWhite"
+                }
+                else if(index === 1){
+                  backgroundColor = " borderCyan"
+                }
+                else if(index === 2){
+                  backgroundColor = " borderFucia"
+                }
+                else if(index === 3){
+                  backgroundColor = " borderCrimson"
+                }
+                return  <div className={"button unselectable nationButton" + backgroundColor} onClick={(e) => {this.changeNation(e, index)}}>
+                          <h1>
+                            {index + 1}
+                          </h1>
+                        </div>
+              })}
+            </div>
           </div>
         </div>
       </div>
