@@ -38,6 +38,7 @@ class App extends Component {
     for(let i = 0; i < this.state.nations.length; i++){
       this.state.nations[i] = {
         claims: [],
+        population: 50,
       }
     }
   }
@@ -330,10 +331,10 @@ class App extends Component {
                 {"Water: " + this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].water}
               </h1>
               <h1>
-                {"Crop Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].cropLevel * 10)/10)}
+                {"Crop Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].cropLevel * 10))}
               </h1>
               <h1>
-                {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10)/10)}
+                {"Mine Level: " + (Math.round(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].mineLevel * 10))}
               </h1>
               <h1>
                 {"Current Owner: " + Number(this.state.hexGrid[this.state.currentCoords[0]][this.state.currentCoords[1]].claimedBy + 1)}
@@ -362,10 +363,13 @@ class App extends Component {
               {"Current Nation: " + Number(this.state.currentNation + 1)}
             </h1>
             <h1>
-              {"Crop Potential: " + (Math.round(this.getTotalCrop(this.state.currentNation)*10)/10)}
+              {"Crop Potential: " + (Math.round(this.getTotalCrop(this.state.currentNation)*10))}
             </h1>
             <h1>
-              {"Mine Potential: " + (Math.round(this.getTotalMine(this.state.currentNation)*10)/10)}
+              {"Mine Potential: " + (Math.round(this.getTotalMine(this.state.currentNation)*10))}
+            </h1>
+            <h1>
+              {"Population: " + (Math.round(this.state.nations[this.state.currentNation].population))}
             </h1>
           </div>
         </div>

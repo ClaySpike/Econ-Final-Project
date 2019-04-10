@@ -17,7 +17,8 @@ body {
 
 #grid {
   width: 65%;
-  margin: .5vw;
+  margin-left: .5vw;
+  margin-top: .5vw;
 }
 
 .hex {
