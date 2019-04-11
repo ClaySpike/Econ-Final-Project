@@ -32,7 +32,6 @@ class App extends Component {
           x: i,
           y: j,
           water: w,
-          productionHalved: false,
           cropLevel: c,
           cropProduction: 0,
           cropProductionSelected: 0,
@@ -290,7 +289,6 @@ class App extends Component {
     e.preventDefault();
     let valC = 0;
     let valM = 0;
-    let halved = false;
     console.log(e.target.value);
 
     if (type === "crop") {
@@ -340,12 +338,32 @@ class App extends Component {
     return total;
   }
 
+  getTotalCropProduction(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].cropProduction;
+    }
+    return total;
+  }
+
   getTotalMine(nation) {
     let total = 0;
     for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
       total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
         this.state.nations[nation].claims[i][1]
       ].mineLevel;
+    }
+    return total;
+  }
+
+  getTotalMineProduction(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].mineProduction;
     }
     return total;
   }
@@ -633,7 +651,11 @@ class App extends Component {
                 )}
             </h1>
             <h1>
-              {"Crop Potential: " +
+              {"Crop Production: " +
+                Math.round(
+                  this.getTotalCropProduction(this.state.currentNation)
+                ) +
+                "/" +
                 Math.round(this.getTotalCrop(this.state.currentNation))}
             </h1>
             <h1>
@@ -641,7 +663,11 @@ class App extends Component {
                 this.state.nations[this.state.currentNation].storedCrop}
             </h1>
             <h1>
-              {"Mine Potential: " +
+              {"Mine Production: " +
+                Math.round(
+                  this.getTotalMineProduction(this.state.currentNation)
+                ) +
+                "/" +
                 Math.round(this.getTotalMine(this.state.currentNation))}
             </h1>
             <h1>
