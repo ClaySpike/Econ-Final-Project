@@ -50,8 +50,7 @@ class App extends Component {
         claims: [],
         population: 25,
         storedCrop: 25,
-        storedMine: 25,
-        takenTurn: false
+        storedMine: 25
       };
     }
   }
@@ -128,7 +127,6 @@ class App extends Component {
           state.nations[state.currentNation].claims.length
         ] = state.currentCoords;
         state.nations[state.currentNation].storedMine -= 50;
-        state.nations[state.currentNation].takenTurn = true;
       });
       this.forceUpdate();
       this.cancelClick(e);
@@ -260,29 +258,18 @@ class App extends Component {
 
   handleTurn(e) {
     e.preventDefault();
-    let bad = true;
     for (let i = 0; i < this.state.nations.length; i++) {
-      if (!this.state.nations[i].takenTurn) {
-        console.log("REEET");
-        bad = false;
+      let pop = this.state.nations[i].population;
+      if (this.getTotalCrop(i) < this.state.nations[i].population) {
+        pop = this.state.nations[i].population * Math.random;
       }
+      this.setState(state => {
+        state.nations[i].population = pop;
+        state.nations[i].storedCrop += Math.round(this.getTotalCropProduction(i) - pop);
+        state.nations[i].storedMine += Math.round(this.getTotalMineProduction(i));
+      });
     }
-
-    if (bad) {
-      for (let i = 0; i < this.state.nations.length; i++) {
-        let pop = this.state.nations[i].population;
-        if (this.getTotalCrop(i) < this.state.nations[i].population) {
-          pop = this.state.nations[i].population * Math.random;
-        }
-        this.setState(state => {
-          state.nations[i].population = pop;
-          state.nations[i].storedCrop += Math.round(this.getTotalCrop(i) - pop);
-          state.nations[i].storedMine += Math.round(this.getTotalMine(i));
-          state.nations[i].takenTurn = false;
-        });
-      }
-      this.forceUpdate();
-    }
+    this.forceUpdate();
   }
 
   handleSlider(e, type) {
