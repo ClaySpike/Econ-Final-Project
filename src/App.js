@@ -12,7 +12,7 @@ class App extends Component {
       nations: new Array(4),
       currentCoords: [0, 0],
       summaryOpen: false,
-      currentNation: 0
+      currentNation: 0,
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 
@@ -122,7 +122,7 @@ class App extends Component {
       this.setState(state => {
         state.hexGrid[state.currentCoords[0]][
           state.currentCoords[1]
-        ].claimedBy = state.currentNation;
+        ].claimedBy = Number(state.currentNation);
         state.nations[state.currentNation].claims[
           state.nations[state.currentNation].claims.length
         ] = state.currentCoords;
@@ -243,7 +243,7 @@ class App extends Component {
   setSummary(coords) {
     if (coords !== null) {
       this.setState(state => {
-        state.currentCoords = [coords[0], coords[2]];
+        state.currentCoords = [Number(coords[0]), Number(coords[2])];
       });
       this.forceUpdate();
     }
@@ -265,8 +265,12 @@ class App extends Component {
       }
       this.setState(state => {
         state.nations[i].population = pop;
-        state.nations[i].storedCrop += Math.round(this.getTotalCropProduction(i) - pop);
-        state.nations[i].storedMine += Math.round(this.getTotalMineProduction(i));
+        state.nations[i].storedCrop += Math.round(
+          this.getTotalCropProduction(i) - pop
+        );
+        state.nations[i].storedMine += Math.round(
+          this.getTotalMineProduction(i)
+        );
       });
     }
     this.forceUpdate();
@@ -318,6 +322,7 @@ class App extends Component {
   getTotalCrop(nation) {
     let total = 0;
     for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      console.log(total)
       total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
         this.state.nations[nation].claims[i][1]
       ].cropLevel;
@@ -328,6 +333,7 @@ class App extends Component {
   getTotalCropProduction(nation) {
     let total = 0;
     for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      console.log(total)
       total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
         this.state.nations[nation].claims[i][1]
       ].cropProduction;
@@ -551,52 +557,56 @@ class App extends Component {
               this.tileHiddenCSS()
             }
           >
-            <h1>
-              {"Crop Production: " +
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].cropProduction}
-            </h1>
-            <input
-              type="range"
-              min="0"
-              max={Math.round(
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].cropLevel
-              )}
-              defaultValue={
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].cropProduction
-              }
-              onChange={e => {
-                this.handleSlider(e, "crop");
-              }}
-            />
-            <h1>
-              {"Mine Production: " +
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].mineProduction}
-            </h1>
-            <input
-              type="range"
-              min="0"
-              max={Math.round(
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].mineLevel
-              )}
-              defaultValue={
-                this.state.hexGrid[this.state.currentCoords[0]][
-                  this.state.currentCoords[1]
-                ].mineProduction
-              }
-              onChange={e => {
-                this.handleSlider(e, "mine");
-              }}
-            />
+            <div className="productionContainer">
+              <h1>
+                {"Crop Production: " +
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].cropProduction}
+              </h1>
+              <input
+                type="range"
+                min="0"
+                max={Math.round(
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].cropLevel
+                )}
+                defaultValue={
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].cropProduction
+                }
+                onChange={e => {
+                  this.handleSlider(e, "crop");
+                }}
+              />
+            </div>
+            <div className="productionContainer">
+              <h1>
+                {"Mine Production: " +
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].mineProduction}
+              </h1>
+              <input
+                type="range"
+                min="0"
+                max={Math.round(
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].mineLevel
+                )}
+                defaultValue={
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].mineProduction
+                }
+                onChange={e => {
+                  this.handleSlider(e, "mine");
+                }}
+              />
+            </div>
           </div>
           <div className="buttonContainer">
             <div className={this.claimCSS()} onClick={e => this.handleClaim(e)}>

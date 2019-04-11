@@ -179,3 +179,8 @@ body {
 .hidden {
   display: none;
 }
+
+.productionContainer {
+  display: flex;
+  flex-direction: row;
+}
