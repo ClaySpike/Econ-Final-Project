@@ -17,8 +17,8 @@ body {
 
 #grid {
   width: 65%;
-  margin-left: .5vw;
-  margin-top: .5vw;
+  margin-left: 0.5vw;
+  margin-top: 0.5vw;
 }
 
 .hex {
@@ -42,19 +42,19 @@ body {
 }
 
 .hexStrokeCyan {
-  stroke: #00FFFF;
+  stroke: #00ffff;
 }
 
 .hexStrokeFuscia {
-  stroke:	#FF00FF;
+  stroke: #ff00ff;
 }
 
 .hexStrokeCrimson {
-  stroke: #DC143C;
+  stroke: #dc143c;
 }
 
 .hexColorGreen {
-  fill: #4CAF50;
+  fill: #4caf50;
 }
 
 .hexColorBrown {
@@ -62,11 +62,11 @@ body {
 }
 
 .hexColorBlue {
-  fill: #50A6C2;
+  fill: #50a6c2;
 }
 
 .white {
-  color: white
+  color: white;
 }
 
 .hexSummaryContainer {
@@ -86,7 +86,7 @@ body {
 }
 
 .dataPadding {
-  margin: .5vw;
+  margin: 0.5vw;
 }
 
 .sidePanel {
@@ -97,8 +97,8 @@ body {
 
 .button {
   color: white;
-  border-radius: .75vw;
-  margin: .45vw;
+  border-radius: 0.75vw;
+  margin: 0.45vw;
   width: 100%;
   text-align: center;
   display: inline-block;
@@ -116,7 +116,7 @@ body {
 }
 
 .confirmColor {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 .confirmColorH:hover {
@@ -124,7 +124,7 @@ body {
 }
 
 .disabled {
-  opacity: .5;
+  opacity: 0.5;
 }
 
 .buttonContainer {
@@ -134,15 +134,15 @@ body {
 }
 
 .nationButton {
-  border: .25vw solid;
+  border: 0.25vw solid;
   width: 100%;
 }
 
 .nationInfoContainer {
-  margin: .45vw;
-  border: .25vw solid;
-  border-radius: .75vw;
-  padding: 0 .45vw .45vw .45vw;
+  margin: 0.45vw;
+  border: 0.25vw solid;
+  border-radius: 0.75vw;
+  padding: 0 0.45vw 0.45vw 0.45vw;
 }
 
 .borderWhite {
@@ -150,15 +150,15 @@ body {
 }
 
 .borderCyan {
-  border-color: #00FFFF;
+  border-color: #00ffff;
 }
 
 .borderFucia {
-  border-color: #FF00FF;
+  border-color: #ff00ff;
 }
 
 .borderCrimson {
-  border-color: #DC143C;
+  border-color: #dc143c;
 }
 
 .borderBlack {
@@ -169,9 +169,13 @@ body {
   color: black;
 }
 
-.unselectable { 
-  -webkit-user-select: none; /* Safari */        
+.unselectable {
+  -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE10+/Edge */
   user-select: none; /* Standard */
+}
+
+.hidden {
+  display: none;
 }
