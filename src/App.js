@@ -117,7 +117,7 @@ class App extends Component {
     e.preventDefault();
     if (
       this.checkClaim(this.state.currentCoords, this.state.currentNation) &&
-      this.state.nations[this.state.currentNation].storedMine >= 50
+      this.state.nations[this.state.currentNation].storedMine >= 100
     ) {
       this.setState(state => {
         state.hexGrid[state.currentCoords[0]][
@@ -126,7 +126,7 @@ class App extends Component {
         state.nations[state.currentNation].claims[
           state.nations[state.currentNation].claims.length
         ] = state.currentCoords;
-        state.nations[state.currentNation].storedMine -= 50;
+        state.nations[state.currentNation].storedMine -= 100;
       });
       this.forceUpdate();
       this.cancelClick(e);
@@ -146,7 +146,7 @@ class App extends Component {
       coords != null &&
       this.state.nations[nation] != null &&
       this.state.hexGrid[coords[0]][coords[1]].claimedBy === -1 &&
-      this.state.nations[nation].storedCrop >= 50
+      this.state.nations[nation].storedMine >= 100
     ) {
       for (let j = 0; j < this.state.nations[nation].claims.length; j++) {
         if (
