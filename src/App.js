@@ -12,7 +12,7 @@ class App extends Component {
       nations: new Array(4),
       currentCoords: [0, 0],
       summaryOpen: false,
-      currentNation: 0,
+      currentNation: 0
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 
@@ -95,271 +95,7 @@ class App extends Component {
     return unusable;
   }
 
-  handleClick(e) {
-    e.preventDefault();
-    let coords = e.target.parentElement.getAttribute("data-position");
-    if (coords != null) {
-      this.setState({
-        summaryOpen: true
-      });
-      this.setSummary(coords);
-    }
-  }
-
-  cancelClick(e) {
-    e.preventDefault();
-    this.setState({
-      summaryOpen: false
-    });
-  }
-
-  handleClaim(e) {
-    e.preventDefault();
-    if (
-      this.checkClaim(this.state.currentCoords, this.state.currentNation) &&
-      this.state.nations[this.state.currentNation].storedMine >= 100
-    ) {
-      this.setState(state => {
-        state.hexGrid[state.currentCoords[0]][
-          state.currentCoords[1]
-        ].claimedBy = Number(state.currentNation);
-        state.nations[state.currentNation].claims[
-          state.nations[state.currentNation].claims.length
-        ] = state.currentCoords;
-        state.nations[state.currentNation].storedMine -= 100;
-      });
-      this.forceUpdate();
-      this.cancelClick(e);
-    }
-  }
-
-  changeNation(e, nation) {
-    e.preventDefault();
-    this.setState({
-      currentNation: nation
-    });
-  }
-
-  checkClaim(coords, nation) {
-    let works = false;
-    if (
-      coords != null &&
-      this.state.nations[nation] != null &&
-      this.state.hexGrid[coords[0]][coords[1]].claimedBy === -1 &&
-      this.state.nations[nation].storedMine >= 100
-    ) {
-      for (let j = 0; j < this.state.nations[nation].claims.length; j++) {
-        if (
-          !(
-            this.state.nations[nation].claims[j][0] === coords[0] &&
-            this.state.nations[nation].claims[j][1] === coords[1]
-          )
-        ) {
-          let x = this.state.nations[nation].claims[j][0] - coords[0];
-          let y = this.state.nations[nation].claims[j][1] - coords[1];
-          if (x === 0 && (y === -1 || y === 1)) {
-            //same row left or right
-            works = true;
-          } else if (coords[0] % 2 === 0) {
-            //even row
-            if ((x === 1 || x === -1) && (y === -1 || y === 0)) {
-              works = true;
-            }
-          } else {
-            //odd row
-            if ((x === 1 || x === -1) && (y === 0 || y === 1)) {
-              works = true;
-            }
-          }
-        } else {
-          console.log("beep");
-          return false;
-        }
-      }
-    }
-    return works;
-  }
-
-  claimCSS() {
-    if (this.state.currentCoords != null) {
-      if (this.checkClaim(this.state.currentCoords, this.state.currentNation)) {
-        return "button confirmColor confirmColorH unselectable";
-      }
-    }
-    return "button confirmColor disabled unselectable";
-  }
-
-  cancelCSS() {
-    if (this.state.summaryOpen) {
-      return "button cancelColor cancelColorH unselectable";
-    }
-    return "button cancelColor disabled unselectable";
-  }
-
-  borderCSS(nation) {
-    if (nation === 0) {
-      return "borderWhite";
-    } else if (nation === 1) {
-      return "borderCyan";
-    } else if (nation === 2) {
-      return "borderFucia";
-    } else if (nation === 3) {
-      return "borderCrimson";
-    }
-  }
-
-  tileHiddenCSS() {
-    let claimed = false;
-    if (this.state.summaryOpen) {
-      for (
-        let i = 0;
-        i < this.state.nations[this.state.currentNation].claims.length;
-        i++
-      ) {
-        if (
-          Number(this.state.nations[this.state.currentNation].claims[i][0]) ===
-            Number(this.state.currentCoords[0]) &&
-          Number(this.state.nations[this.state.currentNation].claims[i][1]) ===
-            Number(this.state.currentCoords[1])
-        ) {
-          claimed = true;
-        }
-      }
-    }
-
-    if (this.state.summaryOpen && claimed) {
-      return "";
-    }
-    return " hidden";
-  }
-
-  hideNation() {
-    if (this.state.nations.length === 1) {
-      return " hidden";
-    }
-    return "";
-  }
-
-  setSummary(coords) {
-    if (coords !== null) {
-      this.setState(state => {
-        state.currentCoords = [Number(coords[0]), Number(coords[2])];
-      });
-      this.forceUpdate();
-    }
-  }
-
-  handleMouseOver(e) {
-    e.preventDefault();
-    if (!this.state.summaryOpen) {
-      this.setSummary(e.target.parentElement.getAttribute("data-position"));
-    }
-  }
-
-  handleTurn(e) {
-    e.preventDefault();
-    for (let i = 0; i < this.state.nations.length; i++) {
-      let pop = this.state.nations[i].population;
-      if (this.getTotalCrop(i) < this.state.nations[i].population) {
-        pop = this.state.nations[i].population * Math.random;
-      }
-      this.setState(state => {
-        state.nations[i].population = pop;
-        state.nations[i].storedCrop += Math.round(
-          this.getTotalCropProduction(i) - pop
-        );
-        state.nations[i].storedMine += Math.round(
-          this.getTotalMineProduction(i)
-        );
-      });
-    }
-    this.forceUpdate();
-  }
-
-  handleSlider(e, type) {
-    e.preventDefault();
-    let valC = 0;
-    let valM = 0;
-    console.log(e.target.value);
-
-    if (type === "crop") {
-      valC = e.target.value;
-      valM = this.state.hexGrid[this.state.currentCoords[0]][
-        this.state.currentCoords[1]
-      ].mineProductionSelected;
-    } else {
-      valC = this.state.hexGrid[this.state.currentCoords[0]][
-        this.state.currentCoords[1]
-      ].cropProductionSelected;
-      valM = e.target.value;
-    }
-
-    let valCS = valC;
-    let valMS = valM;
-    if (valM > 0 && valC > 0) {
-      valM = Math.floor(valM / 2);
-      valC = Math.floor(valC / 2);
-    }
-
-    this.setState(state => {
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].mineProduction = valM;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].mineProductionSelected = valMS;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].cropProduction = valC;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].cropProductionSelected = valCS;
-    });
-
-    this.forceUpdate();
-  }
-
-  getTotalCrop(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      console.log(total)
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].cropLevel;
-    }
-    return total;
-  }
-
-  getTotalCropProduction(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      console.log(total)
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].cropProduction;
-    }
-    return total;
-  }
-
-  getTotalMine(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].mineLevel;
-    }
-    return total;
-  }
-
-  getTotalMineProduction(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].mineProduction;
-    }
-    return total;
-  }
+  /*-----------------START HEXAGON CODE-----------------*/
 
   getHexWidth() {
     if (document.getElementById("grid") != null) {
@@ -489,6 +225,286 @@ class App extends Component {
       );
     }
   }
+
+  /*------------------END HEXAGON CODE------------------*/
+  /*--------------------START HANDLE--------------------*/
+
+  handleClick(e) {
+    e.preventDefault();
+    let coords = e.target.parentElement.getAttribute("data-position");
+    if (coords != null) {
+      this.setState({
+        summaryOpen: true
+      });
+      this.setSummary(coords);
+    }
+  }
+
+  cancelClick(e) {
+    e.preventDefault();
+    this.setState({
+      summaryOpen: false
+    });
+  }
+
+  changeNation(e, nation) {
+    e.preventDefault();
+    this.setState({
+      currentNation: nation
+    });
+  }
+
+  handleMouseOver(e) {
+    e.preventDefault();
+    if (!this.state.summaryOpen) {
+      this.setSummary(e.target.parentElement.getAttribute("data-position"));
+    }
+  }
+
+  handleClaim(e) {
+    e.preventDefault();
+    if (
+      this.checkClaim(this.state.currentCoords, this.state.currentNation) &&
+      this.state.nations[this.state.currentNation].storedMine >= 100
+    ) {
+      this.setState(state => {
+        state.hexGrid[state.currentCoords[0]][
+          state.currentCoords[1]
+        ].claimedBy = Number(state.currentNation);
+        state.nations[state.currentNation].claims[
+          state.nations[state.currentNation].claims.length
+        ] = state.currentCoords;
+        state.nations[state.currentNation].storedMine -= 100;
+      });
+      this.forceUpdate();
+      this.cancelClick(e);
+    }
+  }
+
+  handleTurn(e) {
+    e.preventDefault();
+    for (let i = 0; i < this.state.nations.length; i++) {
+      let pop = this.state.nations[i].population;
+      if (this.getTotalCrop(i) < this.state.nations[i].population) {
+        pop = this.state.nations[i].population * Math.random;
+      }
+      this.setState(state => {
+        state.nations[i].population = pop;
+        state.nations[i].storedCrop += Math.round(
+          this.getTotalCropProduction(i) - pop
+        );
+        state.nations[i].storedMine += Math.round(
+          this.getTotalMineProduction(i)
+        );
+      });
+    }
+    this.forceUpdate();
+  }
+
+  handleSlider(e, type) {
+    e.preventDefault();
+    let valC = 0;
+    let valM = 0;
+    console.log(e.target.value);
+
+    if (type === "crop") {
+      valC = e.target.value;
+      valM = this.state.hexGrid[this.state.currentCoords[0]][
+        this.state.currentCoords[1]
+      ].mineProductionSelected;
+    } else {
+      valC = this.state.hexGrid[this.state.currentCoords[0]][
+        this.state.currentCoords[1]
+      ].cropProductionSelected;
+      valM = e.target.value;
+    }
+
+    let valCS = valC;
+    let valMS = valM;
+    if (valM > 0 && valC > 0) {
+      valM = Math.floor(valM / 2);
+      valC = Math.floor(valC / 2);
+    }
+
+    this.setState(state => {
+      state.hexGrid[state.currentCoords[0]][
+        state.currentCoords[1]
+      ].mineProduction = valM;
+      state.hexGrid[state.currentCoords[0]][
+        state.currentCoords[1]
+      ].mineProductionSelected = valMS;
+      state.hexGrid[state.currentCoords[0]][
+        state.currentCoords[1]
+      ].cropProduction = valC;
+      state.hexGrid[state.currentCoords[0]][
+        state.currentCoords[1]
+      ].cropProductionSelected = valCS;
+    });
+
+    this.forceUpdate();
+  }
+
+  /*---------------------END HANDLE---------------------*/
+  /*----------------------START CSS---------------------*/
+
+  claimCSS() {
+    if (this.state.currentCoords != null) {
+      if (this.checkClaim(this.state.currentCoords, this.state.currentNation)) {
+        return "button confirmColor confirmColorH unselectable";
+      }
+    }
+    return "button confirmColor disabled unselectable";
+  }
+
+  cancelCSS() {
+    if (this.state.summaryOpen) {
+      return "button cancelColor cancelColorH unselectable";
+    }
+    return "button cancelColor disabled unselectable";
+  }
+
+  borderCSS(nation) {
+    if (nation === 0) {
+      return "borderWhite";
+    } else if (nation === 1) {
+      return "borderCyan";
+    } else if (nation === 2) {
+      return "borderFucia";
+    } else if (nation === 3) {
+      return "borderCrimson";
+    }
+  }
+
+  tileHiddenCSS() {
+    let claimed = false;
+    if (this.state.summaryOpen) {
+      for (
+        let i = 0;
+        i < this.state.nations[this.state.currentNation].claims.length;
+        i++
+      ) {
+        if (
+          Number(this.state.nations[this.state.currentNation].claims[i][0]) ===
+            Number(this.state.currentCoords[0]) &&
+          Number(this.state.nations[this.state.currentNation].claims[i][1]) ===
+            Number(this.state.currentCoords[1])
+        ) {
+          claimed = true;
+        }
+      }
+    }
+
+    if (this.state.summaryOpen && claimed) {
+      return "";
+    }
+    return " hidden";
+  }
+
+  hideNation() {
+    if (this.state.nations.length === 1) {
+      return " hidden";
+    }
+    return "";
+  }
+
+  /*-----------------------END CSS----------------------*/
+  /*---------------------START CLAIM--------------------*/
+
+  checkClaim(coords, nation) {
+    let works = false;
+    if (
+      coords != null &&
+      this.state.nations[nation] != null &&
+      this.state.hexGrid[coords[0]][coords[1]].claimedBy === -1 &&
+      this.state.nations[nation].storedMine >= 100
+    ) {
+      for (let j = 0; j < this.state.nations[nation].claims.length; j++) {
+        if (
+          !(
+            this.state.nations[nation].claims[j][0] === coords[0] &&
+            this.state.nations[nation].claims[j][1] === coords[1]
+          )
+        ) {
+          let x = this.state.nations[nation].claims[j][0] - coords[0];
+          let y = this.state.nations[nation].claims[j][1] - coords[1];
+          if (x === 0 && (y === -1 || y === 1)) {
+            //same row left or right
+            works = true;
+          } else if (coords[0] % 2 === 0) {
+            //even row
+            if ((x === 1 || x === -1) && (y === -1 || y === 0)) {
+              works = true;
+            }
+          } else {
+            //odd row
+            if ((x === 1 || x === -1) && (y === 0 || y === 1)) {
+              works = true;
+            }
+          }
+        } else {
+          console.log("beep");
+          return false;
+        }
+      }
+    }
+    return works;
+  }
+
+  /*---------------------END CLAIM--------------------*/
+  /*--------------------START DATA--------------------*/
+
+  setSummary(coords) {
+    if (coords !== null) {
+      this.setState(state => {
+        state.currentCoords = [Number(coords[0]), Number(coords[2])];
+      });
+      this.forceUpdate();
+    }
+  }
+
+  getTotalCrop(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      console.log(total);
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].cropLevel;
+    }
+    return total;
+  }
+
+  getTotalCropProduction(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      console.log(total);
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].cropProduction;
+    }
+    return total;
+  }
+
+  getTotalMine(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].mineLevel;
+    }
+    return total;
+  }
+
+  getTotalMineProduction(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].mineProduction;
+    }
+    return total;
+  }
+
+  /*---------------------END DATA-------------------*/
 
   render() {
     return (
