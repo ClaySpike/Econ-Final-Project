@@ -183,4 +183,40 @@ body {
 .productionContainer {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  margin-top: -0.5em;
+}
+
+.colorGreen {
+  color: #4caf50;
+}
+
+.colorRed {
+  color: #f44336;
+}
+
+.inputNumber {
+  width: 100%;
+  flex-grow: 5;
+  flex-shrink: 1;
+  background: none;
+  color: white;
+  font-size: 2em;
+  display: block;
+  font-size: 2em;
+  font-weight: bold;
+  border: none;
+  outline: none;
+  border-bottom: 0.25vw solid white;
+  text-align: right;
+}
+
+.acceptButton {
+  flex-grow: 1;
+  flex-shrink: 1;
+  background: #4caf50;
+}
+
+h1 {
+  white-space: nowrap;
 }

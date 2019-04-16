@@ -34,13 +34,9 @@ class App extends Component {
           water: w,
           cropLevel: c,
           cropProduction: 0,
-          cropProductionSelected: 0,
           mineLevel: m,
           mineProduction: 0,
-          mineProductionSelected: 0,
-          claimedBy: cb,
-          maxPop: 100,
-          curPop: 0
+          claimedBy: cb
         };
       }
     }
@@ -284,64 +280,48 @@ class App extends Component {
   handleTurn(e) {
     e.preventDefault();
     for (let i = 0; i < this.state.nations.length; i++) {
-      let pop = this.state.nations[i].population;
-      if (this.getTotalCrop(i) < this.state.nations[i].population) {
-        pop = this.state.nations[i].population * Math.random;
-      }
       this.setState(state => {
-        state.nations[i].population = pop;
-        state.nations[i].storedCrop += Math.round(
-          this.getTotalCropProduction(i) - pop
-        );
-        state.nations[i].storedMine += Math.round(
-          this.getTotalMineProduction(i)
-        );
+        state.nations[i].storedCrop += -state.nations[i].population + this.getTotalCropProduction(i);
+        state.nations[i].storedMine += this.getTotalMineProduction(i);
       });
     }
     this.forceUpdate();
   }
 
-  handleSlider(e, type) {
+  productionChange(e) {
     e.preventDefault();
-    let valC = 0;
-    let valM = 0;
-    console.log(e.target.value);
-
-    if (type === "crop") {
-      valC = e.target.value;
-      valM = this.state.hexGrid[this.state.currentCoords[0]][
-        this.state.currentCoords[1]
-      ].mineProductionSelected;
-    } else {
-      valC = this.state.hexGrid[this.state.currentCoords[0]][
-        this.state.currentCoords[1]
-      ].cropProductionSelected;
-      valM = e.target.value;
+    if (Number(e.target.value) > Number(e.target.max)) {
+      e.target.value = e.target.max;
+    } else if (Number(e.target.value) < Number(e.target.min)) {
+      e.target.value = e.target.min;
     }
-
-    let valCS = valC;
-    let valMS = valM;
-    if (valM > 0 && valC > 0) {
-      valM = Math.floor(valM / 2);
-      valC = Math.floor(valC / 2);
-    }
-
-    this.setState(state => {
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].mineProduction = valM;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].mineProductionSelected = valMS;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].cropProduction = valC;
-      state.hexGrid[state.currentCoords[0]][
-        state.currentCoords[1]
-      ].cropProductionSelected = valCS;
-    });
-
     this.forceUpdate();
+  }
+
+  productionAccept(e, type) {
+    e.preventDefault();
+    if (e.keyCode === 13 || e.keyCode === undefined) {
+      if (type === "crop") {
+        let jim = Number(document.getElementById("cropProductionInput").value);
+        this.setState(state => {
+          state.hexGrid[state.currentCoords[0]][
+            state.currentCoords[1]
+          ].cropProduction += jim;
+          state.nations[state.currentNation].storedCrop -= Math.ceil(jim / 2);
+        });
+        document.getElementById("cropProductionInput").value = 0;
+      } else {
+        let jim = Number(document.getElementById("mineProductionInput").value);
+        this.setState(state => {
+          state.hexGrid[state.currentCoords[0]][
+            state.currentCoords[1]
+          ].mineProduction += jim;
+          state.nations[state.currentNation].storedCrop -= Math.ceil(jim / 2);
+        });
+        document.getElementById("mineProductionInput").value = 0;
+      }
+      this.forceUpdate();
+    }
   }
 
   /*---------------------END HANDLE---------------------*/
@@ -465,21 +445,9 @@ class App extends Component {
   getTotalCrop(nation) {
     let total = 0;
     for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      console.log(total);
       total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
         this.state.nations[nation].claims[i][1]
       ].cropLevel;
-    }
-    return total;
-  }
-
-  getTotalCropProduction(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      console.log(total);
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].cropProduction;
     }
     return total;
   }
@@ -494,6 +462,16 @@ class App extends Component {
     return total;
   }
 
+  getTotalCropProduction(nation) {
+    let total = 0;
+    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
+      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
+        this.state.nations[nation].claims[i][1]
+      ].cropProduction;
+    }
+    return total;
+  }
+
   getTotalMineProduction(nation) {
     let total = 0;
     for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
@@ -502,6 +480,27 @@ class App extends Component {
       ].mineProduction;
     }
     return total;
+  }
+
+  getProductionCost() {
+    if (
+      document.getElementById("cropProductionInput") !== null &&
+      document.getElementById("mineProductionInput") !== null
+    ) {
+      if (
+        Number(document.getElementById("cropProductionInput").value) !== 0 ||
+        Number(document.getElementById("mineProductionInput").value) !== 0
+      ) {
+        return -Math.ceil(
+          (Math.abs(
+            Number(document.getElementById("cropProductionInput").value)
+          ) +
+            Number(document.getElementById("mineProductionInput").value)) /
+            2
+        );
+      }
+    }
+    return "";
   }
 
   /*---------------------END DATA-------------------*/
@@ -573,55 +572,105 @@ class App extends Component {
               this.tileHiddenCSS()
             }
           >
-            <div className="productionContainer">
-              <h1>
-                {"Crop Production: " +
+            <h1>
+              {"Crop Production: " +
+                Math.round(
                   this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
-                  ].cropProduction}
-              </h1>
-              <input
-                type="range"
-                min="0"
-                max={Math.round(
+                  ].cropProduction
+                ) +
+                "/" +
+                Math.round(
                   this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
                   ].cropLevel
                 )}
-                defaultValue={
-                  this.state.hexGrid[this.state.currentCoords[0]][
+            </h1>
+            <div className="productionContainer">
+              <h1>Change by:</h1>
+              <input
+                id="cropProductionInput"
+                onKeyUp={e => {
+                  this.productionAccept(e, "crop");
+                }}
+                onChange={e => {
+                  this.productionChange(e, "crop");
+                }}
+                className="inputNumber"
+                defaultValue="0"
+                type="number"
+                min={
+                  -this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
                   ].cropProduction
                 }
-                onChange={e => {
-                  this.handleSlider(e, "crop");
-                }}
-              />
-            </div>
-            <div className="productionContainer">
-              <h1>
-                {"Mine Production: " +
+                max={Math.round(
                   this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
-                  ].mineProduction}
-              </h1>
-              <input
-                type="range"
-                min="0"
-                max={Math.round(
+                  ].cropLevel -
+                    this.state.hexGrid[this.state.currentCoords[0]][
+                      this.state.currentCoords[1]
+                    ].cropProduction
+                )}
+              />
+              <div
+                className="button acceptButton unselectable"
+                onClick={e => {
+                  this.productionAccept(e, "crop");
+                }}
+              >
+                <h1>Apply</h1>
+              </div>
+            </div>
+            <h1>
+              {"Mine Production: " +
+                Math.round(
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].mineProduction
+                ) +
+                "/" +
+                Math.round(
                   this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
                   ].mineLevel
                 )}
-                defaultValue={
-                  this.state.hexGrid[this.state.currentCoords[0]][
+            </h1>
+            <div className="productionContainer">
+              <h1>Change by:</h1>
+              <input
+                id="mineProductionInput"
+                onKeyUp={e => {
+                  this.productionAccept(e, "mine");
+                }}
+                onChange={e => {
+                  this.productionChange(e, "mine");
+                }}
+                className="inputNumber"
+                defaultValue="0"
+                type="number"
+                min={
+                  -this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
                   ].mineProduction
                 }
-                onChange={e => {
-                  this.handleSlider(e, "mine");
-                }}
+                max={Math.round(
+                  this.state.hexGrid[this.state.currentCoords[0]][
+                    this.state.currentCoords[1]
+                  ].mineLevel -
+                    this.state.hexGrid[this.state.currentCoords[0]][
+                      this.state.currentCoords[1]
+                    ].mineProduction
+                )}
               />
+              <div
+                className="button acceptButton unselectable"
+                onClick={e => {
+                  this.productionAccept(e, "mine");
+                }}
+              >
+                <h1>Apply</h1>
+              </div>
             </div>
           </div>
           <div className="buttonContainer">
@@ -673,7 +722,9 @@ class App extends Component {
             </h1>
             <h1>
               {"Crop Stored: " +
-                this.state.nations[this.state.currentNation].storedCrop}
+                this.state.nations[this.state.currentNation].storedCrop +
+                " " +
+                this.getProductionCost()}
             </h1>
             <h1>
               {"Mine Production: " +
