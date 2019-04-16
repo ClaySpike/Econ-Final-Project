@@ -44,6 +44,7 @@ class App extends Component {
     for (let i = 0; i < this.state.nations.length; i++) {
       this.state.nations[i] = {
         claims: [],
+        takenTurn: false,
         population: 25,
         storedCrop: 25,
         storedMine: 25
@@ -279,12 +280,19 @@ class App extends Component {
 
   handleTurn(e) {
     e.preventDefault();
-    for (let i = 0; i < this.state.nations.length; i++) {
-      this.setState(state => {
-        state.nations[i].storedCrop += -state.nations[i].population + this.getTotalCropProduction(i);
-        state.nations[i].storedMine += this.getTotalMineProduction(i);
-      });
-    }
+    this.setState(state => {
+      state.nations[state.currentNation].storedCrop +=
+        -state.nations[state.currentNation].population + this.getTotalCropProduction(state.currentNation);
+      state.nations[
+        state.currentNation
+      ].storedMine += this.getTotalMineProduction(state.currentNation);
+      state.nations[state.currentNation].takenTurn = false;
+      if (state.currentNation < state.nations.length - 1) {
+        state.currentNation += 1;
+      } else {
+        state.currentNation = 0;
+      }
+    });
     this.forceUpdate();
   }
 
@@ -684,7 +692,7 @@ class App extends Component {
               <h1>Cancel</h1>
             </div>
           </div>
-          <div className={"buttonContainer" + this.hideNation()}>
+          {/*<div className={"buttonContainer" + this.hideNation()}>
             {this.state.nations.map((value, index) => {
               return (
                 <div
@@ -700,7 +708,7 @@ class App extends Component {
                 </div>
               );
             })}
-          </div>
+          </div>*/}
           <div
             className={
               "nationInfoContainer " + this.borderCSS(this.state.currentNation)
