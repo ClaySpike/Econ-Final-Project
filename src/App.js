@@ -9,7 +9,7 @@ class App extends Component {
       width: 0,
       height: 0,
       hexGrid: new Array(10),
-      nations: new Array(1),
+      nations: new Array(4),
       currentCoords: [0, 0],
       summaryOpen: false,
       currentNation: 0
