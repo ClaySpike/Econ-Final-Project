@@ -9,7 +9,7 @@ class App extends Component {
       width: 0,
       height: 0,
       hexGrid: new Array(10),
-      nations: new Array(4),
+      nations: new Array(1),
       currentCoords: [0, 0],
       summaryOpen: false,
       currentNation: 0
@@ -46,7 +46,7 @@ class App extends Component {
         claims: [],
         takenTurn: false,
         population: 25,
-        storedCrop: 25,
+        storedCrop: 50,
         storedMine: 25
       };
     }
@@ -280,12 +280,34 @@ class App extends Component {
 
   handleTurn(e) {
     e.preventDefault();
+    document.getElementById("cropProductionInput").value = 0;
+    document.getElementById("mineProductionInput").value = 0;
     this.setState(state => {
-      state.nations[state.currentNation].storedCrop +=
-        -state.nations[state.currentNation].population + this.getTotalCropProduction(state.currentNation);
-      state.nations[
-        state.currentNation
-      ].storedMine += this.getTotalMineProduction(state.currentNation);
+      if (
+        state.nations[state.currentNation].storedCrop -
+          state.nations[state.currentNation].population +
+          this.getTotalCropProduction(state.currentNation) >
+        0
+      ) {
+        state.nations[state.currentNation].storedCrop +=
+          -state.nations[state.currentNation].population +
+          this.getTotalCropProduction(state.currentNation);
+      } else {
+        state.nations[state.currentNation].storedCrop = 0;
+      }
+
+      if (
+        state.nations[state.currentNation].storedMine +
+          this.getTotalMineProduction(state.currentNation) >
+        0
+      ) {
+        state.nations[
+          state.currentNation
+        ].storedMine += this.getTotalMineProduction(state.currentNation);
+      } else {
+        state.nations[state.currentNation].storedMine = 0;
+      }
+
       state.nations[state.currentNation].takenTurn = false;
       if (state.currentNation < state.nations.length - 1) {
         state.currentNation += 1;
@@ -315,7 +337,9 @@ class App extends Component {
           state.hexGrid[state.currentCoords[0]][
             state.currentCoords[1]
           ].cropProduction += jim;
-          state.nations[state.currentNation].storedCrop -= Math.ceil(jim / 2);
+          state.nations[state.currentNation].storedCrop -= Math.ceil(
+            Math.abs(jim)
+          );
         });
         document.getElementById("cropProductionInput").value = 0;
       } else {
@@ -324,7 +348,9 @@ class App extends Component {
           state.hexGrid[state.currentCoords[0]][
             state.currentCoords[1]
           ].mineProduction += jim;
-          state.nations[state.currentNation].storedCrop -= Math.ceil(jim / 2);
+          state.nations[state.currentNation].storedCrop -= Math.ceil(
+            Math.abs(jim)
+          );
         });
         document.getElementById("mineProductionInput").value = 0;
       }
@@ -503,12 +529,85 @@ class App extends Component {
           (Math.abs(
             Number(document.getElementById("cropProductionInput").value)
           ) +
-            Number(document.getElementById("mineProductionInput").value)) /
-            2
+            Math.abs(
+              Number(document.getElementById("mineProductionInput").value)
+            ))
         );
       }
     }
     return "";
+  }
+
+  getMaximumInput(type) {
+    if (type === "crop") {
+      if (document.getElementById("mineProductionInput") !== null) {
+        if (
+          Math.round(
+            this.state.hexGrid[this.state.currentCoords[0]][
+              this.state.currentCoords[1]
+            ].cropLevel
+          ) -
+            this.state.hexGrid[this.state.currentCoords[0]][
+              this.state.currentCoords[1]
+            ].cropProduction +
+            Math.abs(
+              Number(document.getElementById("mineProductionInput").value)
+            ) >
+          this.state.nations[this.state.currentNation].storedCrop
+        ) {
+          return (
+            this.state.nations[this.state.currentNation].storedCrop -
+            Math.abs(
+              Number(document.getElementById("mineProductionInput").value)
+            )
+          );
+        }
+      }
+      return (
+        Math.round(
+          this.state.hexGrid[this.state.currentCoords[0]][
+            this.state.currentCoords[1]
+          ].cropLevel
+        ) -
+        this.state.hexGrid[this.state.currentCoords[0]][
+          this.state.currentCoords[1]
+        ].cropProduction
+      );
+    } else {
+      if (document.getElementById("cropProductionInput") !== null) {
+        if (
+          Math.round(
+            this.state.hexGrid[this.state.currentCoords[0]][
+              this.state.currentCoords[1]
+            ].mineLevel
+          ) -
+            this.state.hexGrid[this.state.currentCoords[0]][
+              this.state.currentCoords[1]
+            ].mineProduction +
+            Math.abs(
+              Number(document.getElementById("cropProductionInput").value)
+            ) >
+          this.state.nations[this.state.currentNation].storedCrop
+        ) {
+          return (
+            this.state.nations[this.state.currentNation].storedCrop -
+            Math.abs(
+              Number(document.getElementById("cropProductionInput").value)
+            )
+          );
+        }
+      }
+      return (
+        Math.round(
+          this.state.hexGrid[this.state.currentCoords[0]][
+            this.state.currentCoords[1]
+          ].mineLevel
+        ) -
+        this.state.hexGrid[this.state.currentCoords[0]][
+          this.state.currentCoords[1]
+        ].mineProduction
+      );
+    }
   }
 
   /*---------------------END DATA-------------------*/
@@ -608,18 +707,17 @@ class App extends Component {
                 defaultValue="0"
                 type="number"
                 min={
-                  -this.state.hexGrid[this.state.currentCoords[0]][
+                  -(this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
-                  ].cropProduction
+                  ].cropProduction >
+                  this.state.nations[this.state.currentNation].storedCrop * 2
+                    ? this.state.nations[this.state.currentNation].storedCrop *
+                      2
+                    : this.state.hexGrid[this.state.currentCoords[0]][
+                        this.state.currentCoords[1]
+                      ].cropProduction)
                 }
-                max={Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].cropLevel -
-                    this.state.hexGrid[this.state.currentCoords[0]][
-                      this.state.currentCoords[1]
-                    ].cropProduction
-                )}
+                max={this.getMaximumInput("crop")}
               />
               <div
                 className="button acceptButton unselectable"
@@ -658,18 +756,17 @@ class App extends Component {
                 defaultValue="0"
                 type="number"
                 min={
-                  -this.state.hexGrid[this.state.currentCoords[0]][
+                  -(this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
-                  ].mineProduction
+                  ].mineProduction >
+                  this.state.nations[this.state.currentNation].storedCrop * 2
+                    ? this.state.nations[this.state.currentNation].storedCrop *
+                      2
+                    : this.state.hexGrid[this.state.currentCoords[0]][
+                        this.state.currentCoords[1]
+                      ].mineProduction)
                 }
-                max={Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].mineLevel -
-                    this.state.hexGrid[this.state.currentCoords[0]][
-                      this.state.currentCoords[1]
-                    ].mineProduction
-                )}
+                max={this.getMaximumInput("mine")}
               />
               <div
                 className="button acceptButton unselectable"
