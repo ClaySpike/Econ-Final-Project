@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import "./settlers.svg"
 import "./App.css";
 
 class App extends Component {
@@ -19,35 +20,194 @@ class App extends Component {
     for (let i = 0; i < this.state.hexGrid.length; i++) {
       this.state.hexGrid[i] = new Array(this.state.hexGrid.length);
       for (let j = 0; j < this.state.hexGrid[i].length; j++) {
-        let w = Math.floor(Math.random() * 6) === 0;
-        let c = 0;
-        let m = 0;
-        if (!w) {
-          c = Math.random() * 100;
-          m = 100 - c;
+        let typeRand = Math.floor(Math.random() * 100);
+        let typeNum = 0;
+        let typeName = "";
+        let foodNum = 0;
+        let prodNum = 0;
+        let goldNum = 0;
+
+        if (typeRand >= 0 && typeRand < 40) {
+          typeName = "plains";
+          typeNum = 0;
+          foodNum = 2;
+          prodNum = 0;
+        } else if (typeRand >= 40 && typeRand < 60) {
+          typeName = "hills";
+          typeNum = 1;
+          foodNum = 0;
+          prodNum = 2;
+        } else if (typeRand >= 60 && typeRand < 70) {
+          typeName = "forest";
+          typeNum = 2;
+          foodNum = 1;
+          prodNum = 1;
+        } else if (typeRand >= 70 && typeRand < 85) {
+          typeName = "lake";
+          typeNum = 3;
+          foodNum = 2;
+          prodNum = 0;
+        } else if (typeRand >= 85 && typeRand < 90) {
+          typeName = "desert";
+          typeNum = 4;
+          foodNum = 0;
+          prodNum = 1;
+        } else if (typeRand >= 90 && typeRand < 100) {
+          typeName = "wetlands";
+          typeNum = 5;
+          foodNum = 1;
+          prodNum = 1;
+        } else {
+          typeName = "plains";
+          typeNum = 0;
+          foodNum = 2;
+          prodNum = 0;
         }
-        let cb = -1;
+
+        const resourcesArr = [
+          ["none", 0, 0, 0, 0, 0, 0],
+          ["wheat", 20, 5, 0, 0, 0, 0],
+          ["cow", 10, 2.5, 7.5, 0, 0, 0],
+          ["fish", 0, 0, 0, 25, 0, 5],
+          ["stone", 10, 15, 2.5, 0, 1, 0],
+          ["coal", 1, 15, 2, 0, 5, 0],
+          ["iron", 1, 10, 2, 0, 3.5, 0],
+          ["horse", 10, 2.5, 10, 0, 0, 0],
+          ["gold", 0.5, 5, 2, 0, 3.5, 5],
+          ["cotton", 2.5, 1.5, 0, 0, 0, 0],
+          ["sugar", 2.5, 1.5, 0, 0, 0, 0],
+          ["gems", 0.25, 1, 1, 0, 5, 0.25],
+          ["pearls", 0, 0, 0, 10, 0, 0],
+          ["wine", 1.5, 1.5, 0, 0, 0, 0],
+          ["marble", 1, 5, 0, 0, 0, 0]
+        ];
+
+        const resourcesData = [
+          {
+            name: "none",
+            type: "none",
+            production: 0,
+            food: 0
+          },
+          {
+            name: "wheat",
+            type: "basic",
+            production: 0,
+            food: 1
+          },
+          {
+            name: "cow",
+            type: "basic",
+            production: 0,
+            food: 1
+          },
+          {
+            name: "fish",
+            type: "basic",
+            production: 0,
+            food: 1
+          },
+          {
+            name: "stone",
+            type: "basic",
+            production: 1,
+            food: 0
+          },
+          {
+            name: "coal",
+            type: "strategic",
+            production: 1,
+            food: 0
+          },
+          {
+            name: "iron",
+            type: "strategic",
+            production: 1,
+            food: 0
+          },
+          {
+            name: "horse",
+            type: "strategic",
+            production: 1,
+            food: 0
+          },
+          {
+            name: "gold",
+            type: "luxary",
+            gold: 2
+          },
+          {
+            name: "cotton",
+            type: "luxary",
+            gold: 2
+          },
+          {
+            name: "sugar",
+            type: "luxary",
+            gold: 2
+          },
+          {
+            name: "gems",
+            type: "luxary",
+            gold: 3
+          },
+          {
+            name: "pearls",
+            type: "luxary",
+            gold: 2
+          },
+          {
+            name: "wine",
+            type: "luxary",
+            gold: 2
+          },
+          {
+            name: "marble",
+            type: "luxary",
+            gold: 2
+          }
+        ];
+
+        let res = [];
+
+        for (let q = 0; q < resourcesArr.length; q++) {
+          let chance = Math.random() * 100;
+          if (resourcesArr[q][1 + typeNum] >= chance) {
+            res.push(q);
+          }
+        }
+
+        let resour = 0;
+
+        if (res.length > 0) {
+          resour = res[Math.floor(Math.random() * res.length)];
+          if (
+            resourcesData[resour].type === "basic" ||
+            resourcesData[resour].type === "strategic"
+          ) {
+            foodNum += resourcesData[resour].food;
+            prodNum += resourcesData[resour].production;
+          } else {
+            goldNum += resourcesData[resour].gold;
+          }
+        }
 
         this.state.hexGrid[i][j] = {
           x: i,
           y: j,
-          water: w,
-          cropLevel: c,
-          cropProduction: 0,
-          mineLevel: m,
-          mineProduction: 0,
-          claimedBy: cb
+          claimedBy: -1,
+          type: typeName,
+          resource: resourcesData[resour],
+          food: foodNum,
+          production: prodNum,
+          gold: goldNum
         };
       }
     }
 
     for (let i = 0; i < this.state.nations.length; i++) {
       this.state.nations[i] = {
-        claims: [],
-        takenTurn: false,
-        population: 25,
-        storedCrop: 50,
-        storedMine: 25
+        claims: []
       };
     }
   }
@@ -55,10 +215,6 @@ class App extends Component {
   componentDidMount() {
     this.updateWindowDimensions();
     window.addEventListener("resize", this.updateWindowDimensions);
-    let unusable = [];
-    for (let i = 0; i < this.state.nations.length; i++) {
-      unusable = this.findNationsStart(i, unusable);
-    }
   }
 
   componentWillUnmount() {
@@ -147,24 +303,29 @@ class App extends Component {
   getHexDiv(value, width, summary) {
     let strokeColor = "";
     let backColor = "";
-    if (value.claimedBy === -1) {
-      strokeColor = "hexStrokeBackground";
-    } else if (value.claimedBy === 0) {
-      strokeColor = "hexStrokeWhite";
-    } else if (value.claimedBy === 1) {
-      strokeColor = "hexStrokeCyan";
-    } else if (value.claimedBy === 2) {
-      strokeColor = "hexStrokeFuscia";
-    } else if (value.claimedBy === 3) {
-      strokeColor = "hexStrokeCrimson";
-    }
 
-    if (value.water) {
-      backColor = "hexColorBlue";
-    } else if (value.cropLevel > value.mineLevel) {
-      backColor = "hexColorGreen";
-    } else if (value.cropLevel < value.mineLevel) {
-      backColor = "hexColorBrown";
+    switch (value.type) {
+      case "plains":
+        backColor = "hexColorPlains";
+        break;
+      case "hills":
+        backColor = "hexColorHills";
+        break;
+      case "forest":
+        backColor = "hexColorForest";
+        break;
+      case "lake":
+        backColor = "hexColorLake";
+        break;
+      case "desert":
+        backColor = "hexColorDesert";
+        break;
+      case "wetlands":
+        backColor = "hexColorWetlands";
+        break;
+      default:
+        backColor = "";
+        break;
     }
 
     if (!summary) {
@@ -526,12 +687,12 @@ class App extends Component {
         Number(document.getElementById("mineProductionInput").value) !== 0
       ) {
         return -Math.ceil(
-          (Math.abs(
+          Math.abs(
             Number(document.getElementById("cropProductionInput").value)
           ) +
             Math.abs(
               Number(document.getElementById("mineProductionInput").value)
-            ))
+            )
         );
       }
     }
@@ -641,25 +802,25 @@ class App extends Component {
             </div>
             <div className="dataPadding">
               <h1>
-                {"Water: " +
+                {"Type: " +
                   this.state.hexGrid[this.state.currentCoords[0]][
                     this.state.currentCoords[1]
-                  ].water}
+                  ].type}
               </h1>
               <h1>
-                {"Crop Level: " +
+                {"Food: " +
                   Math.round(
                     this.state.hexGrid[this.state.currentCoords[0]][
                       this.state.currentCoords[1]
-                    ].cropLevel
+                    ].food
                   )}
               </h1>
               <h1>
-                {"Mine Level: " +
+                {"Production: " +
                   Math.round(
                     this.state.hexGrid[this.state.currentCoords[0]][
                       this.state.currentCoords[1]
-                    ].mineLevel
+                    ].production
                   )}
               </h1>
               <h1>
@@ -672,6 +833,12 @@ class App extends Component {
               </h1>
             </div>
           </div>
+          <h1>
+            {"Resource: " +
+              this.state.hexGrid[this.state.currentCoords[0]][
+                this.state.currentCoords[1]
+              ].resource.name}
+          </h1>
           <div
             className={
               "nationInfoContainer " +

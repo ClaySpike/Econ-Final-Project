@@ -1,0 +1,15 @@
+﻿name,type,production,food,gold
+wheat,basic,0,1,
+cow,basic,0,1,
+fish,basic,0,1,
+stone,basic,1,0,
+coal,strategic,1,0,
+iron,strategic,1,0,
+horse,strategic,1,0,
+gold,luxary,,,2
+cotton,luxary,,,2
+sugar,luxary,,,2
+gems,luxary,,,3
+pearls,luxary,,,2
+wine,luxary,,,2
+marble,luxary,,,2

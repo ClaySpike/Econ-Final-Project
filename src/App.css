@@ -53,18 +53,6 @@ body {
   stroke: #dc143c;
 }
 
-.hexColorGreen {
-  fill: #4caf50;
-}
-
-.hexColorBrown {
-  fill: #795548;
-}
-
-.hexColorBlue {
-  fill: #50a6c2;
-}
-
 .white {
   color: white;
 }
@@ -219,4 +207,28 @@ body {
 
 h1 {
   white-space: nowrap;
+}
+
+.hexColorPlains {
+  fill: #4caf50;
+}
+
+.hexColorHills {
+  fill: #795548;
+}
+
+.hexColorForest {
+  fill: darkgreen;
+}
+
+.hexColorLake {
+  fill: #50a6c2;
+}
+
+.hexColorDesert {
+  fill: sandybrown;
+}
+
+.hexColorWetlands {
+  fill: darkolivegreen;
 }
