@@ -205,9 +205,17 @@ class App extends Component {
     }
 
     for (let i = 0; i < this.state.nations.length; i++) {
-      let colors = ["white", "black" , "blue", "yellow", "orange", "deep orange", "purple", "aqua", "fuchsia", "chartreuse", "deep pink", "lime"]
+      let colors = [
+        "white",
+        "black",
+        "yellow",
+        "orange",
+        "aqua",
+        "fuchsia",
+        "lime"
+      ];
       this.state.nations[i] = {
-        color: (i < colors.length ? colors[i]: "black"),
+        color: i < colors.length ? colors[i] : "black",
         cities: [],
         pieces: []
       };
@@ -413,112 +421,6 @@ class App extends Component {
   }
 
   /*---------------------END HANDLE---------------------*/
-  /*----------------------START CSS---------------------*/
-
-  claimCSS() {
-    if (this.state.currentCoords != null) {
-      if (this.checkClaim(this.state.currentCoords, this.state.currentNation)) {
-        return "button confirmColor confirmColorH unselectable";
-      }
-    }
-    return "button confirmColor disabled unselectable";
-  }
-
-  cancelCSS() {
-    if (this.state.summaryOpen) {
-      return "button cancelColor cancelColorH unselectable";
-    }
-    return "button cancelColor disabled unselectable";
-  }
-
-  borderCSS(nation) {
-    if (nation === 0) {
-      return "borderWhite";
-    } else if (nation === 1) {
-      return "borderCyan";
-    } else if (nation === 2) {
-      return "borderFucia";
-    } else if (nation === 3) {
-      return "borderCrimson";
-    }
-  }
-
-  tileHiddenCSS() {
-    let claimed = false;
-    if (this.state.summaryOpen) {
-      for (
-        let i = 0;
-        i < this.state.nations[this.state.currentNation].claims.length;
-        i++
-      ) {
-        if (
-          Number(this.state.nations[this.state.currentNation].claims[i][0]) ===
-            Number(this.state.currentCoords[0]) &&
-          Number(this.state.nations[this.state.currentNation].claims[i][1]) ===
-            Number(this.state.currentCoords[1])
-        ) {
-          claimed = true;
-        }
-      }
-    }
-
-    if (this.state.summaryOpen && claimed) {
-      return "";
-    }
-    return " hidden";
-  }
-
-  hideNation() {
-    if (this.state.nations.length === 1) {
-      return " hidden";
-    }
-    return "";
-  }
-
-  /*-----------------------END CSS----------------------*/
-  /*---------------------START CLAIM--------------------*/
-
-  checkClaim(coords, nation) {
-    let works = false;
-    if (
-      coords != null &&
-      this.state.nations[nation] != null &&
-      this.state.hexGrid[coords[0]][coords[1]].claimedBy === -1 &&
-      this.state.nations[nation].storedMine >= 100
-    ) {
-      for (let j = 0; j < this.state.nations[nation].claims.length; j++) {
-        if (
-          !(
-            this.state.nations[nation].claims[j][0] === coords[0] &&
-            this.state.nations[nation].claims[j][1] === coords[1]
-          )
-        ) {
-          let x = this.state.nations[nation].claims[j][0] - coords[0];
-          let y = this.state.nations[nation].claims[j][1] - coords[1];
-          if (x === 0 && (y === -1 || y === 1)) {
-            //same row left or right
-            works = true;
-          } else if (coords[0] % 2 === 0) {
-            //even row
-            if ((x === 1 || x === -1) && (y === -1 || y === 0)) {
-              works = true;
-            }
-          } else {
-            //odd row
-            if ((x === 1 || x === -1) && (y === 0 || y === 1)) {
-              works = true;
-            }
-          }
-        } else {
-          console.log("beep");
-          return false;
-        }
-      }
-    }
-    return works;
-  }
-
-  /*---------------------END CLAIM--------------------*/
   /*--------------------START DATA--------------------*/
 
   setSummary(coords) {
@@ -745,14 +647,20 @@ class App extends Component {
             let cityColor = "";
             let piece = undefined;
             let pieceColor = "";
-            for(let i = 0; i < this.state.nations.length; i++){
-              for(let j = 0; j < this.state.nations[i].cities.length; j++){
-                if(this.state.nations[i].cities[j].x === value.x && this.state.nations[i].cities[j].y === value.y){
+            for (let i = 0; i < this.state.nations.length; i++) {
+              for (let j = 0; j < this.state.nations[i].cities.length; j++) {
+                if (
+                  this.state.nations[i].cities[j].x === value.x &&
+                  this.state.nations[i].cities[j].y === value.y
+                ) {
                   cityColor = this.state.nations[i].color;
                 }
               }
-              for(let j = 0; j < this.state.nations[i].pieces.length; j++){
-                if(this.state.nations[i].pieces[j].x === value.x && this.state.nations[i].pieces[j].y === value.y){
+              for (let j = 0; j < this.state.nations[i].pieces.length; j++) {
+                if (
+                  this.state.nations[i].pieces[j].x === value.x &&
+                  this.state.nations[i].pieces[j].y === value.y
+                ) {
                   piece = this.state.nations[i].pieces[j];
                   pieceColor = this.state.nations[i].color;
                 }
@@ -777,15 +685,18 @@ class App extends Component {
                   }
                 />
                 <use xlinkHref="#outline" stroke="black" strokeWidth=".75vw" />
-                {(cityColor !== "" ? <use xlinkHref="#city" fill={cityColor} /> : <use/>)}
-                {(piece !== undefined ? <use xlinkHref="#settler" fill={pieceColor} /> : <use/>)}
-                {/*  
-                <use xlinkHref="#city" fill="black" />
-                <use xlinkHref="#settler" fill="white" />
-                */}
+                {cityColor !== "" ? (
+                  <use xlinkHref="#city" fill={cityColor} />
+                ) : (
+                  <use />
+                )}
+                {piece !== undefined ? (
+                  <use xlinkHref="#settler" fill={pieceColor} />
+                ) : (
+                  <use />
+                )}
               </svg>
             );
-            /* this.getHexDiv(value, "9.5%", false); */
           })}
         </div>
         {/* 
