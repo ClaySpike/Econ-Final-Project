@@ -9,7 +9,7 @@ class App extends Component {
       width: 0,
       height: 0,
       hexGrid: new Array(16),
-      nations: new Array(1),
+      nations: new Array(4),
       currentCoords: [0, 0],
       summaryOpen: false,
       currentNation: 0
@@ -205,8 +205,11 @@ class App extends Component {
     }
 
     for (let i = 0; i < this.state.nations.length; i++) {
+      let colors = ["white", "black" , "blue", "yellow", "orange", "deep orange", "purple", "aqua", "fuchsia", "chartreuse", "deep pink", "lime"]
       this.state.nations[i] = {
-        claims: []
+        color: (i < colors.length ? colors[i]: "black"),
+        cities: [],
+        pieces: []
       };
     }
   }
@@ -214,6 +217,10 @@ class App extends Component {
   componentDidMount() {
     this.updateWindowDimensions();
     window.addEventListener("resize", this.updateWindowDimensions);
+    let unusable = [[], []];
+    for (let i = 0; i < this.state.nations.length; i++) {
+      unusable = this.findNationsStart(i, unusable);
+    }
   }
 
   componentWillUnmount() {
@@ -225,71 +232,42 @@ class App extends Component {
   }
 
   findNationsStart(nation, unusable) {
-    let x = Math.floor(Math.random() * this.state.hexGrid.length);
-    let y = Math.floor(Math.random() * this.state.hexGrid[x].length);
+    let xNum = Math.floor(Math.random() * this.state.hexGrid.length);
+    let yNum = Math.floor(Math.random() * this.state.hexGrid[xNum].length);
 
     let bad = false;
-    for (let i = 0; i < unusable.length; i++) {
-      if (unusable[i][0] === x && unusable[i][1] === y) {
+    for (let i = 0; i < unusable[0].length; i++) {
+      if (unusable[0][i][0] === xNum && unusable[0][i][1] === yNum) {
         bad = true;
       }
     }
-    unusable.push([x, y]);
-    if (this.state.hexGrid[x][y].water || bad) {
+
+    for (let i = 0; i < unusable[1].length; i++) {
+      if (
+        Math.abs(unusable[1][i][0] - xNum) < 3 &&
+        Math.abs(unusable[1][i][1] - yNum) < 3
+      ) {
+        bad = true;
+      }
+    }
+
+    unusable[0].push([xNum, yNum]);
+    if (this.state.hexGrid[xNum][yNum].type === "lake" || bad) {
       this.findNationsStart(nation, unusable);
     } else {
       this.setState(state => {
-        state.hexGrid[x][y].claimedBy = nation;
-        state.hexGrid[x][y].population = 50;
-        state.nations[nation].claims = [[x, y]];
+        state.hexGrid[xNum][yNum].claimedBy = nation;
+        state.hexGrid[xNum][yNum].population = 50;
+        state.nations[nation].pieces = [
+          { name: "settler", movement: 1, x: xNum, y: yNum }
+        ];
       });
+      unusable[1].push([xNum, yNum]);
     }
     return unusable;
   }
 
   /*-----------------START HEXAGON CODE-----------------*/
-
-  getHexWidth() {
-    if (document.getElementById("grid") != null) {
-      return document.getElementById("grid").clientWidth / 10;
-    }
-    return this.state.width / 10;
-  }
-
-  getHexHeight() {
-    return this.getHexWidth() * 2 * Math.tan(Math.PI / 6);
-  }
-
-  getHexPoints() {
-    let halfWidth = this.getHexWidth() / 2;
-    let topHalf = (Math.tan(Math.PI / 6) * this.getHexWidth()) / 2;
-    let bottomHalf = (3 * Math.tan(Math.PI / 6) * this.getHexWidth()) / 2;
-    return (
-      halfWidth +
-      ", " +
-      0 +
-      " " +
-      this.getHexWidth() +
-      ", " +
-      topHalf +
-      " " +
-      this.getHexWidth() +
-      ", " +
-      bottomHalf +
-      " " +
-      halfWidth +
-      ", " +
-      this.getHexHeight() +
-      " " +
-      0 +
-      ", " +
-      bottomHalf +
-      " " +
-      0 +
-      ", " +
-      topHalf
-    );
-  }
 
   getHexes() {
     let arr = [];
@@ -297,90 +275,6 @@ class App extends Component {
       arr = arr.concat(this.state.hexGrid[i]);
     }
     return arr;
-  }
-
-  getHexDiv(value, width, summary) {
-    let strokeColor = "";
-    let backColor = "";
-
-    switch (value.type) {
-      case "plains":
-        backColor = "hexColorPlains";
-        break;
-      case "hills":
-        backColor = "hexColorHills";
-        break;
-      case "forest":
-        backColor = "hexColorForest";
-        break;
-      case "lake":
-        backColor = "hexColorLake";
-        break;
-      case "desert":
-        backColor = "hexColorDesert";
-        break;
-      case "wetlands":
-        backColor = "hexColorWetlands";
-        break;
-      default:
-        backColor = "";
-        break;
-    }
-
-    if (!summary) {
-      return (
-        <svg
-          key={value.x + " " + value.y}
-          data-position={[value.x, value.y]}
-          onClick={e => {
-            this.handleClick(e);
-          }}
-          onMouseOver={e => {
-            this.handleMouseOver(e);
-          }}
-          className="hex"
-          width={width}
-          viewBox={
-            (-this.getHexWidth() * (13 / 12 - 1)) / 2 +
-            " " +
-            (-this.getHexWidth() * (13 / 12 - 1)) / 2 +
-            " " +
-            +((this.getHexWidth() * 13) / 12) +
-            " " +
-            (this.getHexHeight() * 13) / 12
-          }
-        >
-          <polygon
-            points={this.getHexPoints()}
-            className={"hexStyle " + backColor + " " + strokeColor}
-          />
-        </svg>
-      );
-    } else {
-      return (
-        <svg
-          key={value.x + " " + value.y}
-          data-position={[value.x, value.y]}
-          className="hexSP"
-          width={width + "vw"}
-          height={2 * width * Math.tan(Math.PI / 6) + "vw"}
-          viewBox={
-            (-this.getHexWidth() * (13 / 12 - 1)) / 2 +
-            " " +
-            (-this.getHexWidth() * (13 / 12 - 1)) / 2 +
-            " " +
-            +((this.getHexWidth() * 13) / 12) +
-            " " +
-            (this.getHexHeight() * 13) / 12
-          }
-        >
-          <polygon
-            points={this.getHexPoints()}
-            className={"hexStyle " + backColor + " " + strokeColor}
-          />
-        </svg>
-      );
-    }
   }
 
   /*------------------END HEXAGON CODE------------------*/
@@ -848,6 +742,23 @@ class App extends Component {
         </svg>
         <div style={{ width: "66vw" }}>
           {this.getHexes().map(value => {
+            let cityColor = "";
+            let piece = undefined;
+            let pieceColor = "";
+            for(let i = 0; i < this.state.nations.length; i++){
+              for(let j = 0; j < this.state.nations[i].cities.length; j++){
+                if(this.state.nations[i].cities[j].x === value.x && this.state.nations[i].cities[j].y === value.y){
+                  cityColor = this.state.nations[i].color;
+                }
+              }
+              for(let j = 0; j < this.state.nations[i].pieces.length; j++){
+                if(this.state.nations[i].pieces[j].x === value.x && this.state.nations[i].pieces[j].y === value.y){
+                  piece = this.state.nations[i].pieces[j];
+                  pieceColor = this.state.nations[i].color;
+                }
+              }
+            }
+
             return (
               <svg
                 width="4vw"
@@ -866,6 +777,8 @@ class App extends Component {
                   }
                 />
                 <use xlinkHref="#outline" stroke="black" strokeWidth=".75vw" />
+                {(cityColor !== "" ? <use xlinkHref="#city" fill={cityColor} /> : <use/>)}
+                {(piece !== undefined ? <use xlinkHref="#settler" fill={pieceColor} /> : <use/>)}
                 {/*  
                 <use xlinkHref="#city" fill="black" />
                 <use xlinkHref="#settler" fill="white" />
