@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "./settlers.svg"
 import "./App.css";
 
 class App extends Component {
@@ -9,7 +8,7 @@ class App extends Component {
     this.state = {
       width: 0,
       height: 0,
-      hexGrid: new Array(10),
+      hexGrid: new Array(16),
       nations: new Array(1),
       currentCoords: [0, 0],
       summaryOpen: false,
@@ -776,9 +775,128 @@ class App extends Component {
   render() {
     return (
       <div className="App">
+        <svg xmlns="http://www.w3.org/2000/svg" style={{ display: "none" }}>
+          <symbol
+            id="hexagon"
+            viewBox={
+              "-10 " +
+              -20 * Math.tan(Math.PI / 6) +
+              " 220 " +
+              440 * Math.tan(Math.PI / 6)
+            }
+          >
+            <polygon
+              points={
+                "100 0 " +
+                "200 " +
+                Math.tan(Math.PI / 6) * 100 +
+                " 200 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 100 " +
+                400 * Math.tan(Math.PI / 6) +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 100
+              }
+            />
+          </symbol>
+          <symbol
+            id="outline"
+            viewBox={
+              "-10 " +
+              -20 * Math.tan(Math.PI / 6) +
+              " 220 " +
+              440 * Math.tan(Math.PI / 6)
+            }
+          >
+            <polygon
+              points={
+                "100 0 " +
+                "200 " +
+                Math.tan(Math.PI / 6) * 100 +
+                " 200 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 100 " +
+                400 * Math.tan(Math.PI / 6) +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 100
+              }
+              fill="none"
+            />
+          </symbol>
+          <symbol id="settler" viewBox="-149.3095 -149.3095 750 750">
+            <polygon points="171 327, 170 325, 170 331, 180 343, 180 338, 171 327" />
+            <polygon points="219 185, 243 161, 219 136, 194 161, 219 185" />
+            <polygon points="328 206, 358 176, 328 146, 299 176, 328 206" />
+            <polygon points="255 158, 252 166, 244 182, 244 182, 244 182, 258 193, 274 229, 281 214, 298 201, 289 176, 298 151, 267 151, 255 158" />
+            <polygon points="257 341, 257 343, 269 351, 282 338, 282 328, 257 341" />
+            <polygon points="286 97, 262 122, 286 147, 311 122, 286 97" />
+            <polygon points="171 212, 180 193, 193 183, 193 181, 186 163, 161 162, 164 176, 155 201, 171 212" />
+            <polygon points="165 158, 188 136, 165 113, 143 136, 144 142, 159 157, 165 158" />
+            <polygon points="203 339, 189 341, 189 377, 201 390, 214 377, 214 329, 203 339" />
+            <polygon points="238 307, 249 285, 249 284, 249 245, 258 265, 269 239, 250 197, 238 190, 200 190, 188 197, 176 222, 188 248, 189 245, 189 250, 199 273, 214 306, 214 301, 223 301, 223 377, 236 390, 249 377, 249 339, 238 307" />
+            <polygon points="125 146, 95 176, 125 206, 154 176, 125 146" />
+            <polygon points="430 166, 424 147, 420 132, 383 4, 375 0, 371 8, 373 14, 67 18, 70 7, 65 0, 58 5, 22 166, 26 173, 33 169, 35 161, 54 206, 89 233, 89 436, 104 451, 119 436, 119 345, 130 345, 130 436, 146 451, 161 436, 161 278, 181 323, 198 329, 204 312, 162 219, 147 212, 103 212, 74 190, 52 137, 42 130, 49 100, 270 93, 297 90, 398 98, 407 131, 401 137, 379 190, 350 212, 306 212, 291 219, 249 312, 255 329, 272 323, 292 278, 292 436, 308 451, 323 436, 323 345, 334 345, 334 436, 349 451, 364 436, 364 233, 399 206, 417 164, 418 169, 426 173, 430 166" />
+          </symbol>
+          <symbol id="city" viewBox="-50 -50 200 200">
+            <polygon points="15 100, 40 100, 40 70, 60 70, 60 100, 85 100, 85 60, 50 30, 15 60" />
+            <polygon points="10 60, 50 25, 90 60, 100 50, 50 7.5, 0 50" />
+          </symbol>
+        </svg>
+        <div style={{ width: "66vw" }}>
+          {this.getHexes().map(value => {
+            return (
+              <svg
+                width="4vw"
+                height={4 * 2 * Math.tan(Math.PI / 6) + "vw"}
+                className="hex"
+              >
+                <use
+                  xlinkHref="#hexagon"
+                  className={
+                    "hexColor" +
+                    this.state.hexGrid[value.x][value.y].type
+                      .charAt(0)
+                      .toUpperCase() +
+                    this.state.hexGrid[value.x][value.y].type.slice(1) +
+                    " hexStrokeBackground"
+                  }
+                />
+                <use xlinkHref="#outline" stroke="black" strokeWidth=".75vw" />
+                {/*  
+                <use xlinkHref="#city" fill="black" />
+                <use xlinkHref="#settler" fill="white" />
+                */}
+              </svg>
+            );
+            /* this.getHexDiv(value, "9.5%", false); */
+          })}
+        </div>
+        {/* 
         <div id="grid">
           {this.getHexes().map(value => {
-            return this.getHexDiv(value, "9.5%", false);
+            return (
+              <svg
+                className="hex"
+                width={"9.5%"}
+                key={value.x + " " + value.y}
+                data-position={[value.x, value.y]}
+                onClick={e => {
+                  this.handleClick(e);
+                }}
+                onMouseOver={e => {
+                  this.handleMouseOver(e);
+                }}
+              >
+                <use
+                  xlinkHref="#hexagon"
+                />
+              </svg>
+            );
+            /* this.getHexDiv(value, "9.5%", false); 
           })}
         </div>
         <div className="sidePanel white">
@@ -972,7 +1090,7 @@ class App extends Component {
                 </div>
               );
             })}
-          </div>*/}
+          </div>}
           <div
             className={
               "nationInfoContainer " + this.borderCSS(this.state.currentNation)
@@ -1020,6 +1138,7 @@ class App extends Component {
             </div>
           </div>
         </div>
+        */}
       </div>
     );
   }
