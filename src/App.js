@@ -12,7 +12,8 @@ class App extends Component {
       nations: new Array(4),
       currentCoords: [0, 0],
       summaryOpen: false,
-      currentNation: 0
+      currentNation: 0,
+      cameFroms: undefined
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 
@@ -25,42 +26,50 @@ class App extends Component {
         let foodNum = 0;
         let prodNum = 0;
         let goldNum = 0;
+        let moveCost = 0;
 
         if (typeRand >= 0 && typeRand < 40) {
           typeName = "plains";
           typeNum = 0;
           foodNum = 2;
           prodNum = 0;
+          moveCost = 1;
         } else if (typeRand >= 40 && typeRand < 60) {
           typeName = "hills";
           typeNum = 1;
           foodNum = 0;
           prodNum = 2;
+          moveCost = 2;
         } else if (typeRand >= 60 && typeRand < 70) {
           typeName = "forest";
           typeNum = 2;
           foodNum = 1;
           prodNum = 1;
+          moveCost = 2;
         } else if (typeRand >= 70 && typeRand < 85) {
           typeName = "lake";
           typeNum = 3;
           foodNum = 2;
           prodNum = 0;
+          moveCost = 1;
         } else if (typeRand >= 85 && typeRand < 90) {
           typeName = "desert";
           typeNum = 4;
           foodNum = 0;
           prodNum = 1;
+          moveCost = 1;
         } else if (typeRand >= 90 && typeRand < 100) {
           typeName = "wetlands";
           typeNum = 5;
           foodNum = 1;
           prodNum = 1;
+          moveCost = 2;
         } else {
           typeName = "plains";
           typeNum = 0;
           foodNum = 2;
           prodNum = 0;
+          moveCost = 1;
         }
 
         const resourcesArr = [
@@ -199,7 +208,10 @@ class App extends Component {
           resource: resourcesData[resour],
           food: foodNum,
           production: prodNum,
-          gold: goldNum
+          gold: goldNum,
+          movementCost: moveCost,
+          inPath: false,
+          piece: undefined
         };
       }
     }
@@ -214,7 +226,16 @@ class App extends Component {
         "fuchsia",
         "lime"
       ];
+
+      let randomString = "";
+      for (let j = 0; j < 10; j++) {
+        randomString += String.fromCharCode(
+          Math.floor(Math.random() * 25 + 97)
+        );
+      }
+
       this.state.nations[i] = {
+        name: randomString,
         color: i < colors.length ? colors[i] : "black",
         cities: [],
         pieces: []
@@ -264,10 +285,14 @@ class App extends Component {
       this.findNationsStart(nation, unusable);
     } else {
       this.setState(state => {
-        state.hexGrid[xNum][yNum].claimedBy = nation;
-        state.hexGrid[xNum][yNum].population = 50;
+        state.hexGrid[xNum][yNum].piece = {
+          type: "settler",
+          movement: 1,
+          x: xNum,
+          y: yNum
+        };
         state.nations[nation].pieces = [
-          { name: "settler", movement: 1, x: xNum, y: yNum }
+          { type: "settler", movement: 1, x: xNum, y: yNum }
         ];
       });
       unusable[1].push([xNum, yNum]);
@@ -280,24 +305,182 @@ class App extends Component {
   getHexes() {
     let arr = [];
     for (let i = 0; i < this.state.hexGrid.length; i++) {
-      arr = arr.concat(this.state.hexGrid[i]);
+      for (let j = 0; j < this.state.hexGrid.length; j++) {
+        arr.push(this.state.hexGrid[i][j]);
+      }
     }
     return arr;
   }
 
-  /*------------------END HEXAGON CODE------------------*/
-  /*--------------------START HANDLE--------------------*/
+  getHexDistance(hex1, hex2) {
+    let dx = hex1[1] - hex2[1];
+    let dy = hex1[0] - hex2[0];
+    let penalty =
+      (hex1[0] % 2 === 0 && hex2[0] % 2 === 1 && hex1[1] < hex2[1]) ||
+      (hex2[0] % 2 === 0 && hex1[0] % 2 === 1 && hex2[1] < hex1[1])
+        ? 1
+        : 0;
+    return Math.max(
+      Math.abs(dy),
+      Math.abs(dx) + Math.floor(Math.abs(dy) / 2) + penalty
+    );
+  }
 
-  handleClick(e) {
-    e.preventDefault();
-    let coords = e.target.parentElement.getAttribute("data-position");
-    if (coords != null) {
-      this.setState({
-        summaryOpen: true
-      });
-      this.setSummary(coords);
+  pathfind(startHex, endHex) {
+    //NEED TO DEAL WITH END OR STARTING HEX BEING WATER/IMPASSABLE
+    if (
+      this.state.hexGrid[endHex[0]][endHex[1]].type !== "lake" &&
+      this.state.hexGrid[endHex[0]][endHex[1]].piece === undefined
+    ) {
+      let frontier = [startHex];
+      let cameFrom = new Array(this.state.hexGrid.length);
+      let costFrom = new Array(this.state.hexGrid.length);
+      for (let i = 0; i < cameFrom.length; i++) {
+        cameFrom[i] = new Array(this.state.hexGrid[i].length);
+        costFrom[i] = new Array(this.state.hexGrid[i].length);
+        for (let j = 0; j < cameFrom[i].length; j++) {
+          cameFrom[i][j] = undefined;
+          costFrom[i][j] = undefined;
+        }
+      }
+      cameFrom[startHex[0]][startHex[1]] = startHex;
+      costFrom[startHex[0]][startHex[1]] = 0;
+      let contingency = 0;
+
+      //Creating the path
+      while (
+        frontier.length !== 0 &&
+        contingency < Math.pow(cameFrom.length, 2)
+      ) {
+        let currentIndex = 0;
+        for (let i = 1; i < frontier.length; i++) {
+          if (
+            costFrom[frontier[i][0]][frontier[i][1]] + this.getHexDistance(endHex, frontier[i]) <
+            costFrom[frontier[currentIndex][0]][frontier[currentIndex][1]] + this.getHexDistance(endHex, frontier[currentIndex])
+          ) {
+            currentIndex = i;
+          }
+        }
+        let current = frontier.splice(currentIndex, 1)[0];
+        if (current[0] === endHex[0] && current[1] === endHex[1]) {
+          break;
+        }
+
+        let currentNeighbors = this.getSurroundingHexs(current);
+        for (let i = 0; i < currentNeighbors.length; i++) {
+          let newCost =
+            costFrom[current[0]][current[1]] +
+            this.state.hexGrid[currentNeighbors[i][0]][currentNeighbors[i][1]]
+              .movementCost;
+          if (
+            costFrom[currentNeighbors[i][0]][currentNeighbors[i][1]] !==
+            undefined
+          ) {
+            if (
+              (costFrom[currentNeighbors[i][0]][currentNeighbors[i][1]] ===
+                undefined ||
+                newCost <
+                  costFrom[currentNeighbors[i][0]][currentNeighbors[i][1]]) &&
+              this.state.hexGrid[currentNeighbors[i][0]][currentNeighbors[i][1]]
+                .type !== "lake" &&
+              this.state.hexGrid[currentNeighbors[i][0]][currentNeighbors[i][1]]
+                .piece === undefined
+            ) {
+              costFrom[currentNeighbors[i][0]][
+                currentNeighbors[i][1]
+              ] = newCost;
+              cameFrom[currentNeighbors[i][0]][
+                currentNeighbors[i][1]
+              ] = current;
+              frontier.push(currentNeighbors[i]);
+            }
+          } else if (
+            costFrom[currentNeighbors[i][0]][currentNeighbors[i][1]] ===
+              undefined &&
+            this.state.hexGrid[currentNeighbors[i][0]][currentNeighbors[i][1]]
+              .type !== "lake" &&
+            this.state.hexGrid[currentNeighbors[i][0]][currentNeighbors[i][1]]
+              .piece === undefined
+          ) {
+            costFrom[currentNeighbors[i][0]][currentNeighbors[i][1]] = newCost;
+            cameFrom[currentNeighbors[i][0]][currentNeighbors[i][1]] = current;
+            frontier.push(currentNeighbors[i]);
+          }
+        }
+        contingency++;
+        console.log(contingency);
+      }
+
+      //Setting the path
+      let currentHex = endHex;
+      console.log("end hex : " + endHex);
+      console.log("Current HEx: " + currentHex);
+      let path = [];
+      let contingency2 = 0;
+      while (
+        currentHex !== startHex &&
+        contingency2 < Math.pow(cameFrom.length, 2)
+      ) {
+        path.push(currentHex);
+        console.log("came from: " + cameFrom);
+        console.log("currenthex0 " + currentHex[0] + " " + currentHex[1]);
+        currentHex = cameFrom[currentHex[0]][currentHex[1]];
+      }
+      for (let i = 0; i < path.length; i++) {
+        this.setState(state => {
+          state.hexGrid[path[i][0]][path[i][1]].inPath = true;
+        });
+      }
+      this.forceUpdate();
     }
   }
+
+  getSurroundingHexs(hex) {
+    let surrounding = [];
+    if (hex[0] % 2 === 1) {
+      if (hex[1] + 1 < this.state.hexGrid[hex[0]].length) {
+        surrounding.push([hex[0], hex[1] + 1]);
+        if (hex[0] - 1 >= 0) {
+          surrounding.push([hex[0] - 1, hex[1] + 1]);
+        }
+        if (hex[0] + 1 < this.state.hexGrid.length) {
+          surrounding.push([hex[0] + 1, hex[1] + 1]);
+        }
+      }
+      if (hex[0] - 1 >= 0) {
+        surrounding.push([hex[0] - 1, hex[1]]);
+      }
+      if (hex[1] - 1 >= 0) {
+        surrounding.push([hex[0], hex[1] - 1]);
+      }
+      if (hex[0] + 1 < this.state.hexGrid.length) {
+        surrounding.push([hex[0] + 1, hex[1]]);
+      }
+    } else {
+      if (hex[1] - 1 >= 0) {
+        surrounding.push([hex[0], hex[1] - 1]);
+        if (hex[0] - 1 >= 0) {
+          surrounding.push([hex[0] - 1, hex[1] - 1]);
+        }
+        if (hex[0] + 1 < this.state.hexGrid.length) {
+          surrounding.push([hex[0] + 1, hex[1] - 1]);
+        }
+      }
+      if (hex[1] + 1 < this.state.hexGrid[hex[0]].length) {
+        surrounding.push([hex[0], hex[1] + 1]);
+      }
+      if (hex[0] - 1 >= 0) {
+        surrounding.push([hex[0] - 1, hex[1]]);
+      }
+      if (hex[0] + 1 < this.state.hexGrid.length) {
+        surrounding.push([hex[0] + 1, hex[1]]);
+      }
+    }
+    return surrounding;
+  }
+
+  /*------------------END HEXAGON CODE------------------*/
+  /*--------------------START HANDLE--------------------*/
 
   cancelClick(e) {
     e.preventDefault();
@@ -306,267 +489,34 @@ class App extends Component {
     });
   }
 
-  changeNation(e, nation) {
+  handleClick(e) {
     e.preventDefault();
-    this.setState({
-      currentNation: nation
-    });
-  }
-
-  handleMouseOver(e) {
-    e.preventDefault();
-    if (!this.state.summaryOpen) {
-      this.setSummary(e.target.parentElement.getAttribute("data-position"));
+    let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
+    if (hex !== undefined) {
+      this.pathfind(
+        [
+          this.state.nations[this.state.currentNation].pieces[0].x,
+          this.state.nations[this.state.currentNation].pieces[0].y
+        ],
+        [hex.x, hex.y]
+      );
     }
+    /*
+    console.log(this.getHexDistance([0, 0], [hex.x, hex.y]));
+    console.log(JSON.parse(e.target.parentElement.getAttribute("hex-data")));
+    */
   }
 
-  handleClaim(e) {
+  handleHover(e) {
     e.preventDefault();
-    if (
-      this.checkClaim(this.state.currentCoords, this.state.currentNation) &&
-      this.state.nations[this.state.currentNation].storedMine >= 100
-    ) {
-      this.setState(state => {
-        state.hexGrid[state.currentCoords[0]][
-          state.currentCoords[1]
-        ].claimedBy = Number(state.currentNation);
-        state.nations[state.currentNation].claims[
-          state.nations[state.currentNation].claims.length
-        ] = state.currentCoords;
-        state.nations[state.currentNation].storedMine -= 100;
-      });
-      this.forceUpdate();
-      this.cancelClick(e);
-    }
-  }
-
-  handleTurn(e) {
-    e.preventDefault();
-    document.getElementById("cropProductionInput").value = 0;
-    document.getElementById("mineProductionInput").value = 0;
-    this.setState(state => {
-      if (
-        state.nations[state.currentNation].storedCrop -
-          state.nations[state.currentNation].population +
-          this.getTotalCropProduction(state.currentNation) >
-        0
-      ) {
-        state.nations[state.currentNation].storedCrop +=
-          -state.nations[state.currentNation].population +
-          this.getTotalCropProduction(state.currentNation);
-      } else {
-        state.nations[state.currentNation].storedCrop = 0;
-      }
-
-      if (
-        state.nations[state.currentNation].storedMine +
-          this.getTotalMineProduction(state.currentNation) >
-        0
-      ) {
-        state.nations[
-          state.currentNation
-        ].storedMine += this.getTotalMineProduction(state.currentNation);
-      } else {
-        state.nations[state.currentNation].storedMine = 0;
-      }
-
-      state.nations[state.currentNation].takenTurn = false;
-      if (state.currentNation < state.nations.length - 1) {
-        state.currentNation += 1;
-      } else {
-        state.currentNation = 0;
-      }
-    });
-    this.forceUpdate();
-  }
-
-  productionChange(e) {
-    e.preventDefault();
-    if (Number(e.target.value) > Number(e.target.max)) {
-      e.target.value = e.target.max;
-    } else if (Number(e.target.value) < Number(e.target.min)) {
-      e.target.value = e.target.min;
-    }
-    this.forceUpdate();
-  }
-
-  productionAccept(e, type) {
-    e.preventDefault();
-    if (e.keyCode === 13 || e.keyCode === undefined) {
-      if (type === "crop") {
-        let jim = Number(document.getElementById("cropProductionInput").value);
-        this.setState(state => {
-          state.hexGrid[state.currentCoords[0]][
-            state.currentCoords[1]
-          ].cropProduction += jim;
-          state.nations[state.currentNation].storedCrop -= Math.ceil(
-            Math.abs(jim)
-          );
-        });
-        document.getElementById("cropProductionInput").value = 0;
-      } else {
-        let jim = Number(document.getElementById("mineProductionInput").value);
-        this.setState(state => {
-          state.hexGrid[state.currentCoords[0]][
-            state.currentCoords[1]
-          ].mineProduction += jim;
-          state.nations[state.currentNation].storedCrop -= Math.ceil(
-            Math.abs(jim)
-          );
-        });
-        document.getElementById("mineProductionInput").value = 0;
-      }
-      this.forceUpdate();
+    let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
+    console.log(hex.x + " " + hex.y);
+    if (this.state.cameFroms !== undefined) {
+      console.log(this.state.cameFroms[hex.x][hex.y]);
     }
   }
 
   /*---------------------END HANDLE---------------------*/
-  /*--------------------START DATA--------------------*/
-
-  setSummary(coords) {
-    if (coords !== null) {
-      this.setState(state => {
-        state.currentCoords = [Number(coords[0]), Number(coords[2])];
-      });
-      this.forceUpdate();
-    }
-  }
-
-  getTotalCrop(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].cropLevel;
-    }
-    return total;
-  }
-
-  getTotalMine(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].mineLevel;
-    }
-    return total;
-  }
-
-  getTotalCropProduction(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].cropProduction;
-    }
-    return total;
-  }
-
-  getTotalMineProduction(nation) {
-    let total = 0;
-    for (let i = 0; i < this.state.nations[nation].claims.length; i++) {
-      total += this.state.hexGrid[this.state.nations[nation].claims[i][0]][
-        this.state.nations[nation].claims[i][1]
-      ].mineProduction;
-    }
-    return total;
-  }
-
-  getProductionCost() {
-    if (
-      document.getElementById("cropProductionInput") !== null &&
-      document.getElementById("mineProductionInput") !== null
-    ) {
-      if (
-        Number(document.getElementById("cropProductionInput").value) !== 0 ||
-        Number(document.getElementById("mineProductionInput").value) !== 0
-      ) {
-        return -Math.ceil(
-          Math.abs(
-            Number(document.getElementById("cropProductionInput").value)
-          ) +
-            Math.abs(
-              Number(document.getElementById("mineProductionInput").value)
-            )
-        );
-      }
-    }
-    return "";
-  }
-
-  getMaximumInput(type) {
-    if (type === "crop") {
-      if (document.getElementById("mineProductionInput") !== null) {
-        if (
-          Math.round(
-            this.state.hexGrid[this.state.currentCoords[0]][
-              this.state.currentCoords[1]
-            ].cropLevel
-          ) -
-            this.state.hexGrid[this.state.currentCoords[0]][
-              this.state.currentCoords[1]
-            ].cropProduction +
-            Math.abs(
-              Number(document.getElementById("mineProductionInput").value)
-            ) >
-          this.state.nations[this.state.currentNation].storedCrop
-        ) {
-          return (
-            this.state.nations[this.state.currentNation].storedCrop -
-            Math.abs(
-              Number(document.getElementById("mineProductionInput").value)
-            )
-          );
-        }
-      }
-      return (
-        Math.round(
-          this.state.hexGrid[this.state.currentCoords[0]][
-            this.state.currentCoords[1]
-          ].cropLevel
-        ) -
-        this.state.hexGrid[this.state.currentCoords[0]][
-          this.state.currentCoords[1]
-        ].cropProduction
-      );
-    } else {
-      if (document.getElementById("cropProductionInput") !== null) {
-        if (
-          Math.round(
-            this.state.hexGrid[this.state.currentCoords[0]][
-              this.state.currentCoords[1]
-            ].mineLevel
-          ) -
-            this.state.hexGrid[this.state.currentCoords[0]][
-              this.state.currentCoords[1]
-            ].mineProduction +
-            Math.abs(
-              Number(document.getElementById("cropProductionInput").value)
-            ) >
-          this.state.nations[this.state.currentNation].storedCrop
-        ) {
-          return (
-            this.state.nations[this.state.currentNation].storedCrop -
-            Math.abs(
-              Number(document.getElementById("cropProductionInput").value)
-            )
-          );
-        }
-      }
-      return (
-        Math.round(
-          this.state.hexGrid[this.state.currentCoords[0]][
-            this.state.currentCoords[1]
-          ].mineLevel
-        ) -
-        this.state.hexGrid[this.state.currentCoords[0]][
-          this.state.currentCoords[1]
-        ].mineProduction
-      );
-    }
-  }
-
-  /*---------------------END DATA-------------------*/
 
   render() {
     return (
@@ -623,6 +573,32 @@ class App extends Component {
               fill="none"
             />
           </symbol>
+          <symbol
+            id="pathShow"
+            viewBox={
+              "-30 " +
+              -40 * Math.tan(Math.PI / 6) +
+              " 260 " +
+              480 * Math.tan(Math.PI / 6)
+            }
+          >
+            <polygon
+              points={
+                "100 0 " +
+                "200 " +
+                Math.tan(Math.PI / 6) * 100 +
+                " 200 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 100 " +
+                400 * Math.tan(Math.PI / 6) +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 300 +
+                " 0 " +
+                Math.tan(Math.PI / 6) * 100
+              }
+              fill="none"
+            />
+          </symbol>
           <symbol id="settler" viewBox="-149.3095 -149.3095 750 750">
             <polygon points="171 327, 170 325, 170 331, 180 343, 180 338, 171 327" />
             <polygon points="219 185, 243 161, 219 136, 194 161, 219 185" />
@@ -642,7 +618,7 @@ class App extends Component {
             <polygon points="10 60, 50 25, 90 60, 100 50, 50 7.5, 0 50" />
           </symbol>
         </svg>
-        <div style={{ width: "66vw" }}>
+        <div className="gridContainer">
           {this.getHexes().map(value => {
             let cityColor = "";
             let piece = undefined;
@@ -672,6 +648,8 @@ class App extends Component {
                 width="4vw"
                 height={4 * 2 * Math.tan(Math.PI / 6) + "vw"}
                 className="hex"
+                key={JSON.stringify(value)}
+                hex-data={JSON.stringify(value)}
               >
                 <use
                   xlinkHref="#hexagon"
@@ -683,15 +661,30 @@ class App extends Component {
                     this.state.hexGrid[value.x][value.y].type.slice(1) +
                     " hexStrokeBackground"
                   }
+                  onClick={e => {
+                    this.handleClick(e);
+                  }}
+                  onMouseOver={e => {
+                    this.handleHover(e);
+                  }}
                 />
                 <use xlinkHref="#outline" stroke="black" strokeWidth=".75vw" />
+                {value.inPath ? (
+                  <use
+                    xlinkHref="#pathShow"
+                    stroke="white"
+                    strokeWidth=".75vw"
+                  />
+                ) : (
+                  <use />
+                )}
                 {cityColor !== "" ? (
                   <use xlinkHref="#city" fill={cityColor} />
                 ) : (
                   <use />
                 )}
                 {piece !== undefined ? (
-                  <use xlinkHref="#settler" fill={pieceColor} />
+                  <use xlinkHref={"#" + piece.type} fill={pieceColor} />
                 ) : (
                   <use />
                 )}
@@ -699,7 +692,28 @@ class App extends Component {
             );
           })}
         </div>
-        {/* 
+        <div className="sidePanelContainer">
+          <h1 className="title">
+            {this.state.nations[this.state.currentNation].name
+              .charAt(0)
+              .toUpperCase() +
+              this.state.nations[this.state.currentNation].name.slice(1)}
+          </h1>
+          <div className="summarySectionContainer">
+            <h3>{"Food: " + 0}</h3>
+            <h3>{"Production: " + 0}</h3>
+            <h3>{"Gold: " + 0}</h3>
+            <h3>{"Population: " + 0}</h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default App;
+
+/* 
         <div id="grid">
           {this.getHexes().map(value => {
             return (
@@ -962,10 +976,4 @@ class App extends Component {
             </div>
           </div>
         </div>
-        */}
-      </div>
-    );
-  }
-}
-
-export default App;
+        */
