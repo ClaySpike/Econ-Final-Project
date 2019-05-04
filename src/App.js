@@ -217,15 +217,7 @@ class App extends Component {
     }
 
     for (let i = 0; i < this.state.nations.length; i++) {
-      let colors = [
-        "white",
-        "black",
-        "yellow",
-        "orange",
-        "aqua",
-        "fuchsia",
-        "lime"
-      ];
+      let colors = ["white", "black", "yellow", "fuchsia"];
 
       let randomString = "";
       for (let j = 0; j < 10; j++) {
@@ -326,8 +318,18 @@ class App extends Component {
     );
   }
 
+  clearPath() {
+    for (let i = 0; i < this.state.hexGrid.length; i++) {
+      for (let j = 0; j < this.state.hexGrid[i].length; j++) {
+        this.setState(state => {
+          state.hexGrid[i][j].inPath = false;
+        });
+      }
+    }
+  }
+
   pathfind(startHex, endHex) {
-    //NEED TO DEAL WITH END OR STARTING HEX BEING WATER/IMPASSABLE
+    this.clearPath();
     if (
       this.state.hexGrid[endHex[0]][endHex[1]].type !== "lake" &&
       this.state.hexGrid[endHex[0]][endHex[1]].piece === undefined
@@ -355,8 +357,10 @@ class App extends Component {
         let currentIndex = 0;
         for (let i = 1; i < frontier.length; i++) {
           if (
-            costFrom[frontier[i][0]][frontier[i][1]] + this.getHexDistance(endHex, frontier[i]) <
-            costFrom[frontier[currentIndex][0]][frontier[currentIndex][1]] + this.getHexDistance(endHex, frontier[currentIndex])
+            costFrom[frontier[i][0]][frontier[i][1]] +
+              this.getHexDistance(endHex, frontier[i]) <
+            costFrom[frontier[currentIndex][0]][frontier[currentIndex][1]] +
+              this.getHexDistance(endHex, frontier[currentIndex])
           ) {
             currentIndex = i;
           }
@@ -492,15 +496,7 @@ class App extends Component {
   handleClick(e) {
     e.preventDefault();
     let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
-    if (hex !== undefined) {
-      this.pathfind(
-        [
-          this.state.nations[this.state.currentNation].pieces[0].x,
-          this.state.nations[this.state.currentNation].pieces[0].y
-        ],
-        [hex.x, hex.y]
-      );
-    }
+
     /*
     console.log(this.getHexDistance([0, 0], [hex.x, hex.y]));
     console.log(JSON.parse(e.target.parentElement.getAttribute("hex-data")));
@@ -513,6 +509,15 @@ class App extends Component {
     console.log(hex.x + " " + hex.y);
     if (this.state.cameFroms !== undefined) {
       console.log(this.state.cameFroms[hex.x][hex.y]);
+    }
+    if (hex !== undefined) {
+      this.pathfind(
+        [
+          this.state.nations[this.state.currentNation].pieces[0].x,
+          this.state.nations[this.state.currentNation].pieces[0].y
+        ],
+        [hex.x, hex.y]
+      );
     }
   }
 
@@ -704,6 +709,9 @@ class App extends Component {
             <h3>{"Production: " + 0}</h3>
             <h3>{"Gold: " + 0}</h3>
             <h3>{"Population: " + 0}</h3>
+          </div>
+          <div className={"button unselectable nationButton borderWhite"}>
+            <h1>Unselect</h1>
           </div>
         </div>
       </div>
