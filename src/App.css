@@ -11,27 +11,74 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.gridContainer {
+  width: 66vw;
+  padding-bottom: 1.15470053838vw;
+}
+
+.sidePanelContainer {
+  width: 31.5vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2vw 0 .5vw;
+}
+
+.summarySectionContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.hex {
+  margin-bottom: -1.35vw;
+}
+
+.hex:nth-child(32n + 17) {
+  margin-left: 2vw;
+}
+
+h1 {
+  color: white;
+}
+
+h2 {
+  color: white;
+}
+
+h3 {
+  color: white;
+}
+
+.sectionContainer {
+  color: white;
+  border-radius: 0.75vw;
+  margin: 0.45vw;
+  width: 100%;
+  text-align: center;
+  border-color: white;
+  border: 0.25vw solid;
+}
+
+.hexSummaryContainer {
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+}
+
+.hexDataContainer {
+  width: 35%;
 }
 
 /* HEX V5 */
 
-#grid {
-  width: 65%;
-  margin-left: 0.5vw;
-  margin-top: 0.5vw;
-}
 
-.hex {
-  margin-bottom: -3%;
-}
-
-.hex:nth-child(20n + 11) {
-  margin-left: 4.75%;
-}
-
-.hexStyle {
-  stroke-width: 5%;
-}
 
 .hexStrokeBackground {
   stroke: black;
@@ -53,26 +100,8 @@ body {
   stroke: #dc143c;
 }
 
-.hexColorGreen {
-  fill: #4caf50;
-}
-
-.hexColorBrown {
-  fill: #795548;
-}
-
-.hexColorBlue {
-  fill: #50a6c2;
-}
-
 .white {
   color: white;
-}
-
-.hexSummaryContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .hexSP {
@@ -96,15 +125,17 @@ body {
 }
 
 .button {
+  display: flex;
+  width: 100%;
   color: white;
   border-radius: 0.75vw;
   margin: 0.45vw;
-  width: 100%;
   text-align: center;
   display: inline-block;
   cursor: pointer;
   -webkit-transition-duration: 0.4s; /* Safari */
   transition-duration: 0.4s;
+  border: 0.25vw solid;
 }
 
 .cancelColor {
@@ -131,11 +162,6 @@ body {
   width: 100%;
   display: flex;
   flex-wrap: nowrap;
-}
-
-.nationButton {
-  border: 0.25vw solid;
-  width: 100%;
 }
 
 .nationInfoContainer {
@@ -217,6 +243,26 @@ body {
   background: #4caf50;
 }
 
-h1 {
-  white-space: nowrap;
+.hexColorPlains {
+  fill: #4caf50;
+}
+
+.hexColorHills {
+  fill: #795548;
+}
+
+.hexColorForest {
+  fill: darkgreen;
+}
+
+.hexColorLake {
+  fill: #50a6c2;
+}
+
+.hexColorDesert {
+  fill: #c2b280;
+}
+
+.hexColorWetlands {
+  fill: darkolivegreen;
 }
