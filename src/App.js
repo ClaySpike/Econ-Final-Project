@@ -218,7 +218,7 @@ class App extends Component {
     }
 
     for (let i = 0; i < this.state.nations.length; i++) {
-      let colors = ["white", "blue", "yellow", "fuchsia"];
+      let colors = ["blue", "yellow", "fuchsia", "red"];
 
       let randomString = "";
       for (let j = 0; j < 10; j++) {
@@ -286,7 +286,7 @@ class App extends Component {
         state.nations[nation].pieces = [
           {
             type: "settler",
-            movement: 1,
+            movement: 2,
             x: xNum,
             y: yNum,
             targetHex: undefined
@@ -525,7 +525,6 @@ class App extends Component {
 
   handleHexClick(e) {
     e.preventDefault();
-    console.log("amclick");
     let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
     this.clearPath();
     this.clearPathOld();
@@ -568,7 +567,6 @@ class App extends Component {
   handleHexHover(e) {
     e.preventDefault();
     let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
-    console.log(hex.x + " " + hex.y);
     this.setState(state => {
       state.currentCoords = [hex.x, hex.y];
     });
@@ -662,6 +660,42 @@ class App extends Component {
     e.preventDefault();
     this.clearPath();
     this.clearPathOld();
+    for (
+      let i = 0;
+      i < this.state.nations[this.state.currentNation].pieces.length;
+      i++
+    ) {
+      if (
+        this.state.nations[this.state.currentNation].pieces[i].targetHex !==
+        undefined
+      ) {
+        let path = this.pathfind(
+          [
+            this.state.nations[this.state.currentNation].pieces[i].x,
+            this.state.nations[this.state.currentNation].pieces[i].y
+          ],
+          this.state.nations[this.state.currentNation].pieces[i].targetHex
+        ).reverse();
+        let costLeft = this.state.nations[this.state.currentNation].pieces[i]
+          .movement;
+        let hex = [0, 0];
+        while (costLeft > 0 && path.length > 0) {
+          hex = path.splice(0, 1)[0];
+          costLeft -= this.state.hexGrid[hex[0]][hex[1]].movementCost;
+        }
+        this.setState(state => {
+          state.hexGrid[hex[0]][hex[1]].piece = { ownedBy: state.currentNation, type: "settler", piece: i }
+          state.hexGrid[state.nations[state.currentNation].pieces[i].x][
+            state.nations[state.currentNation].pieces[i].y
+          ].piece = undefined;
+          state.nations[state.currentNation].pieces[i].x = hex[0];
+          state.nations[state.currentNation].pieces[i].y = hex[1];
+          if (state.nations[state.currentNation].pieces[i].targetHex === hex) {
+            state.nations[state.currentNation].pieces[i].targetHex = undefined;
+          }
+        });
+      }
+    }
     this.setState(state => {
       state.currentNation++;
       if (state.currentNation >= this.state.nations.length) {
