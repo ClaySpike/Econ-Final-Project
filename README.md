@@ -1,7 +1,15 @@
-## Civ.js
+# Civ.js
 This project was created by Max Povinelli.
 It is a civilization game where you will be able to grow and build your own civilization.
 It is meant to teach kids the concepts of economics, specifically the concept of opportunity costs and trade offs.
+
+## Set up
+1. Download the repository as a zip file
+2. Unzip the repository
+3. Download and install Node.js
+4. Open Terminal and navigate to the unzipped repository
+5. Use the command "npm start" once in the repository - This will open up a tab in your web browser with a localhost of the app
+
 
 ## Available Scripts
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
