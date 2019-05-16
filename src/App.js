@@ -577,19 +577,25 @@ class App extends Component {
         //Nothing is selected and the hex that was clicked on has a piece on it that is owned by the currentNation
         this.setState(
           state => {
-            state.selected = state.hexGrid[hex.x][hex.y].piece.piece;
+            state.selected = [hex.x, hex.y];
           },
           () => {
             if (
+              this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+                .piece.type !== "city" &&
               this.state.nations[this.state.currentNation].pieces[
-                this.state.selected
+                this.state.hexGrid[this.state.selected[0]][
+                  this.state.selected[1]
+                ].piece.piece
               ].targetHex !== undefined
             ) {
               this.setPathPlanned(
                 this.pathfind(
                   [hex.x, hex.y],
                   this.state.nations[this.state.currentNation].pieces[
-                    this.state.selected
+                    this.state.hexGrid[this.state.selected[0]][
+                      this.state.selected[1]
+                    ].piece.piece
                   ].targetHex
                 )
               );
@@ -603,12 +609,15 @@ class App extends Component {
           this.state.hexGrid[hex.x][hex.y].piece.ownedBy ===
           this.state.currentNation
         ) {
-          if (
-            this.state.hexGrid[hex.x][hex.y].piece.piece === this.state.selected
-          ) {
+          if ([hex.x, hex.y] === this.state.selected) {
             //Hex has a piece on it and that piece is the one that is selected
             this.setState(state => {
               state.selected = undefined;
+            });
+          } else {
+            //Hex has a piece from the currentNation on it and has a different one selected
+            this.setState(state => {
+              state.selected = [hex.x, hex.y];
             });
           }
         } else {
@@ -620,46 +629,65 @@ class App extends Component {
         this.setState(
           state => {
             state.nations[state.currentNation].pieces[
-              state.selected
+              state.hexGrid[state.selected[0]][state.selected[1]].piece.piece
             ].targetHex = [hex.x, hex.y];
           },
           () => {
             let data = this.getMovementPath(
               [
                 this.state.nations[this.state.currentNation].pieces[
-                  this.state.selected
+                  this.state.hexGrid[this.state.selected[0]][
+                    this.state.selected[1]
+                  ].piece.piece
                 ].x,
                 this.state.nations[this.state.currentNation].pieces[
-                  this.state.selected
+                  this.state.hexGrid[this.state.selected[0]][
+                    this.state.selected[1]
+                  ].piece.piece
                 ].y
               ],
               this.state.nations[this.state.currentNation].pieces[
-                this.state.selected
+                this.state.hexGrid[this.state.selected[0]][
+                  this.state.selected[1]
+                ].piece.piece
               ].targetHex,
               this.state.nations[this.state.currentNation].pieces[
-                this.state.selected
+                this.state.hexGrid[this.state.selected[0]][
+                  this.state.selected[1]
+                ].piece.piece
               ].movementLeft
             );
             if (data !== undefined) {
               this.movePiece(
                 this.state.currentNation,
-                this.state.selected,
+                this.state.hexGrid[this.state.selected[0]][
+                  this.state.selected[1]
+                ].piece.piece,
                 data[0]
               );
+              this.setState(state => {
+                state.selected = data[0];
+              });
               this.setPathPlanned(data[1]);
             } else {
               this.setPathPlanned(
                 this.pathfind(
                   [
                     this.state.nations[this.state.currentNation].pieces[
-                      this.state.selected
+                      this.state.hexGrid[this.state.selected[0]][
+                        this.state.selected[1]
+                      ].piece.piece
                     ].x,
                     this.state.nations[this.state.currentNation].pieces[
-                      this.state.selected
+                      this.state.hexGrid[this.state.selected[0]][
+                        this.state.selected[1]
+                      ].piece.piece
                     ].y
                   ],
                   this.state.nations[this.state.currentNation].pieces[
-                    this.state.selected
+                    this.state.hexGrid[this.state.selected[0]][
+                      this.state.selected[1]
+                    ].piece.piece
                   ].targetHex
                 )
               );
@@ -677,34 +705,23 @@ class App extends Component {
     this.setState(state => {
       state.currentCoords = [hex.x, hex.y];
     });
-    if (hex !== undefined && this.state.selected !== undefined) {
+    if (
+      hex !== undefined &&
+      this.state.selected !== undefined &&
+      this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+        .piece !== undefined &&
+      this.state.hexGrid[this.state.selected[0]][this.state.selected[1]].piece
+        .type !== "city"
+    ) {
       this.clearPath();
-      this.setPath(
-        this.pathfind(
-          [
-            this.state.nations[this.state.currentNation].pieces[
-              this.state.selected
-            ].x,
-            this.state.nations[this.state.currentNation].pieces[
-              this.state.selected
-            ].y
-          ],
-          [hex.x, hex.y]
-        ),
-        "black"
-      );
+      this.setPath(this.pathfind(this.state.selected, [hex.x, hex.y]), "black");
       let path = this.getMovementPath(
-        [
-          this.state.nations[this.state.currentNation].pieces[
-            this.state.selected
-          ].x,
-          this.state.nations[this.state.currentNation].pieces[
-            this.state.selected
-          ].y
-        ],
+        this.state.selected,
         [hex.x, hex.y],
-        this.state.nations[this.state.currentNation].pieces[this.state.selected]
-          .movementLeft
+        this.state.nations[this.state.currentNation].pieces[
+          this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+            .piece.piece
+        ].movementLeft
       );
       if (path !== undefined) {
         this.setPath(path[2], "white");
@@ -721,14 +738,18 @@ class App extends Component {
     this.clearPathPlanned();
     if (this.state.selected !== undefined) {
       if (
-        this.state.nations[this.state.currentNation].pieces[this.state.selected]
-          .type === "settler"
+        this.state.nations[this.state.currentNation].pieces[
+          this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+            .piece.piece
+        ].type === "settler"
       ) {
         let xCoord = this.state.nations[this.state.currentNation].pieces[
-          this.state.selected
+          this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+            .piece.piece
         ].x;
         let yCoord = this.state.nations[this.state.currentNation].pieces[
-          this.state.selected
+          this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+            .piece.piece
         ].y;
         let randomString = "";
         for (let j = 0; j < 5; j++) {
@@ -773,7 +794,10 @@ class App extends Component {
             state.hexGrid[surrounding[i][0]][surrounding[i][1]].claimedBy =
               state.currentNation;
           }
-          state.nations[state.currentNation].pieces.splice(state.selected, 1);
+          state.nations[state.currentNation].pieces.splice(
+            state.hexGrid[state.selected[0]][state.selected[1]].piece.piece,
+            1
+          );
           state.selected = undefined;
         });
       }
@@ -1274,43 +1298,51 @@ class App extends Component {
                 </div>
               );
             })}
-            {this.state.selected !== undefined ? (
+            {this.state.selected !== undefined &&
+            this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+              .piece !== undefined &&
+            this.state.hexGrid[this.state.selected[0]][this.state.selected[1]]
+              .piece.type !== "city" ? (
               <div className="summarySectionContainer">
                 <div className="sectionContainer">
                   <h2>
                     {"Selected Piece: " +
-                      this.state.nations[this.state.currentNation].pieces[
-                        this.state.selected
+                      this.state.hexGrid[this.state.selected[0]][
+                        this.state.selected[1]
                       ].type}
                   </h2>
                   <div className="summarySectionContainer">
                     <h4>
                       {"Location: " +
-                        this.state.nations[this.state.currentNation].pieces[
-                          this.state.selected
-                        ].x +
+                        this.state.selected[0] +
                         ", " +
-                        this.state.nations[this.state.currentNation].pieces[
-                          this.state.selected
-                        ].y}
+                        this.state.selected[1]}
                     </h4>
                     <h4>
                       {this.state.nations[this.state.currentNation].pieces[
-                        this.state.selected
+                        this.state.hexGrid[this.state.selected[0]][
+                          this.state.selected[1]
+                        ].piece.piece
                       ].targetHex !== undefined
                         ? "Moving to: " +
                           this.state.nations[this.state.currentNation].pieces[
-                            this.state.selected
+                            this.state.hexGrid[this.state.selected[0]][
+                              this.state.selected[1]
+                            ].piece.piece
                           ].targetHex[0] +
                           ", " +
                           this.state.nations[this.state.currentNation].pieces[
-                            this.state.selected
+                            this.state.hexGrid[this.state.selected[0]][
+                              this.state.selected[1]
+                            ].piece.piece
                           ].targetHex[1]
                         : "Currently not moving"}
                     </h4>
                   </div>
                   {this.state.nations[this.state.currentNation].pieces[
-                    this.state.selected
+                    this.state.hexGrid[this.state.selected[0]][
+                      this.state.selected[1]
+                    ].piece.piece
                   ].type === "settler" ? (
                     <div className="summarySectionContainer">
                       <div
