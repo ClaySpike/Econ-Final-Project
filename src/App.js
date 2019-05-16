@@ -210,8 +210,8 @@ class App extends Component {
           production: prodNum,
           gold: goldNum,
           movementCost: moveCost,
-          inPath: false,
-          inPathOld: false,
+          ableMovement: undefined,
+          plannedMovement: false,
           piece: undefined
         };
       }
@@ -287,6 +287,7 @@ class App extends Component {
           {
             type: "settler",
             movement: 2,
+            movementLeft: 2,
             x: xNum,
             y: yNum,
             targetHex: undefined
@@ -328,18 +329,18 @@ class App extends Component {
     for (let i = 0; i < this.state.hexGrid.length; i++) {
       for (let j = 0; j < this.state.hexGrid[i].length; j++) {
         this.setState(state => {
-          state.hexGrid[i][j].inPath = false;
+          state.hexGrid[i][j].ableMovement = undefined;
         });
       }
     }
     this.forceUpdate();
   }
 
-  clearPathOld() {
+  clearPathPlanned() {
     for (let i = 0; i < this.state.hexGrid.length; i++) {
       for (let j = 0; j < this.state.hexGrid[i].length; j++) {
         this.setState(state => {
-          state.hexGrid[i][j].inPathOld = false;
+          state.hexGrid[i][j].plannedMovement = false;
         });
       }
     }
@@ -347,7 +348,6 @@ class App extends Component {
   }
 
   pathfind(startHex, endHex) {
-    this.clearPath();
     if (
       this.state.hexGrid[endHex[0]][endHex[1]].type !== "lake" &&
       this.state.hexGrid[endHex[0]][endHex[1]].piece === undefined
@@ -443,7 +443,7 @@ class App extends Component {
         path.push(currentHex);
         currentHex = cameFrom[currentHex[0]][currentHex[1]];
       }
-      return path;
+      return path.reverse();
     }
   }
 
@@ -491,26 +491,66 @@ class App extends Component {
     return surrounding;
   }
 
-  setPath(path) {
+  setPath(path, color) {
+    console.log(path);
+    console.log(color);
     if (path !== undefined) {
       for (let i = 0; i < path.length; i++) {
         this.setState(state => {
-          state.hexGrid[path[i][0]][path[i][1]].inPath = true;
+          state.hexGrid[path[i][0]][path[i][1]].ableMovement = color;
         });
       }
     }
     this.forceUpdate();
   }
 
-  setPathOld(path) {
+  setPathPlanned(path) {
     if (path !== undefined) {
       for (let i = 0; i < path.length; i++) {
         this.setState(state => {
-          state.hexGrid[path[i][0]][path[i][1]].inPathOld = true;
+          state.hexGrid[path[i][0]][path[i][1]].plannedMovement = true;
         });
       }
     }
     this.forceUpdate();
+  }
+
+  movePiece(targetNation, targetPiece, hex) {
+    this.setState(state => {
+      state.nations[targetNation].pieces[targetPiece].movementLeft = 0;
+      state.hexGrid[hex[0]][hex[1]].piece = {
+        ownedBy: targetNation,
+        type: "settler",
+        piece: targetPiece
+      };
+      state.hexGrid[state.nations[targetNation].pieces[targetPiece].x][
+        state.nations[targetNation].pieces[targetPiece].y
+      ].piece = undefined;
+      state.nations[targetNation].pieces[targetPiece].x = hex[0];
+      state.nations[targetNation].pieces[targetPiece].y = hex[1];
+      if (state.nations[targetNation].pieces[targetPiece].targetHex === hex) {
+        state.nations[targetNation].pieces[targetPiece].targetHex = undefined;
+      }
+    });
+  }
+
+  getMovementPath(start, end, movement) {
+    if (end !== undefined) {
+      let path = this.pathfind(start, end);
+      let pathMove = [];
+      let costLeft = movement;
+      let hex = [0, 0];
+      if (costLeft > 0) {
+        if (path !== undefined) {
+          while (costLeft > 0 && path.length > 0) {
+            hex = path.splice(0, 1)[0];
+            pathMove.push(hex);
+            costLeft -= this.state.hexGrid[hex[0]][hex[1]].movementCost;
+          }
+          return [hex, path, pathMove];
+        }
+      }
+    }
   }
 
   /*------------------END HEXAGON CODE------------------*/
@@ -525,43 +565,110 @@ class App extends Component {
 
   handleHexClick(e) {
     e.preventDefault();
-    let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
     this.clearPath();
-    this.clearPathOld();
+    this.clearPathPlanned();
+    let hex = JSON.parse(e.target.parentElement.getAttribute("hex-data"));
     if (this.state.selected === undefined) {
-      if (this.state.hexGrid[hex.x][hex.y].piece !== undefined) {
-        this.setState(state => {
-          state.selected = this.state.hexGrid[hex.x][hex.y].piece.piece;
-        });
+      if (
+        this.state.hexGrid[hex.x][hex.y].piece !== undefined &&
+        this.state.hexGrid[hex.x][hex.y].piece.ownedBy ===
+          this.state.currentNation
+      ) {
+        //Nothing is selected and the hex that was clicked on has a piece on it that is owned by the currentNation
+        this.setState(
+          state => {
+            state.selected = state.hexGrid[hex.x][hex.y].piece.piece;
+          },
+          () => {
+            if (
+              this.state.nations[this.state.currentNation].pieces[
+                this.state.selected
+              ].targetHex !== undefined
+            ) {
+              this.setPathPlanned(
+                this.pathfind(
+                  [hex.x, hex.y],
+                  this.state.nations[this.state.currentNation].pieces[
+                    this.state.selected
+                  ].targetHex
+                )
+              );
+            }
+          }
+        );
       }
     } else {
-      this.setState(state => {
-        state.nations[state.currentNation].pieces[state.selected].targetHex = [
-          hex.x,
-          hex.y
-        ];
-      });
-      this.clearPath();
-      this.setPathOld(
-        this.pathfind(
-          [
-            this.state.nations[this.state.currentNation].pieces[
-              this.state.selected
-            ].x,
-            this.state.nations[this.state.currentNation].pieces[
-              this.state.selected
-            ].y
-          ],
-          [hex.x, hex.y]
-        )
-      );
+      if (this.state.hexGrid[hex.x][hex.y].piece !== undefined) {
+        if (
+          this.state.hexGrid[hex.x][hex.y].piece.ownedBy ===
+          this.state.currentNation
+        ) {
+          if (
+            this.state.hexGrid[hex.x][hex.y].piece.piece === this.state.selected
+          ) {
+            //Hex has a piece on it and that piece is the one that is selected
+            this.setState(state => {
+              state.selected = undefined;
+            });
+          }
+        } else {
+          //Hex has a piece on it and it is owned by an enemy nation and a peice of currentNation is selected
+          console.log("Feature to be created at a later date");
+        }
+      } else {
+        //There is no piece on that hex and a piece from currentNation is selected
+        this.setState(
+          state => {
+            state.nations[state.currentNation].pieces[
+              state.selected
+            ].targetHex = [hex.x, hex.y];
+          },
+          () => {
+            let data = this.getMovementPath(
+              [
+                this.state.nations[this.state.currentNation].pieces[
+                  this.state.selected
+                ].x,
+                this.state.nations[this.state.currentNation].pieces[
+                  this.state.selected
+                ].y
+              ],
+              this.state.nations[this.state.currentNation].pieces[
+                this.state.selected
+              ].targetHex,
+              this.state.nations[this.state.currentNation].pieces[
+                this.state.selected
+              ].movementLeft
+            );
+            if (data !== undefined) {
+              this.movePiece(
+                this.state.currentNation,
+                this.state.selected,
+                data[0]
+              );
+              this.setPathPlanned(data[1]);
+            } else {
+              this.setPathPlanned(
+                this.pathfind(
+                  [
+                    this.state.nations[this.state.currentNation].pieces[
+                      this.state.selected
+                    ].x,
+                    this.state.nations[this.state.currentNation].pieces[
+                      this.state.selected
+                    ].y
+                  ],
+                  this.state.nations[this.state.currentNation].pieces[
+                    this.state.selected
+                  ].targetHex
+                )
+              );
+            }
+          }
+        );
+      }
     }
-
     this.forceUpdate();
-    /*
-    console.log(this.getHexDistance([0, 0], [hex.x, hex.y]));
-    console.log(JSON.parse(e.target.parentElement.getAttribute("hex-data")));
-    */
   }
 
   handleHexHover(e) {
@@ -571,6 +678,7 @@ class App extends Component {
       state.currentCoords = [hex.x, hex.y];
     });
     if (hex !== undefined && this.state.selected !== undefined) {
+      this.clearPath();
       this.setPath(
         this.pathfind(
           [
@@ -582,18 +690,35 @@ class App extends Component {
             ].y
           ],
           [hex.x, hex.y]
-        )
+        ),
+        "black"
       );
-      this.forceUpdate();
+      let path = this.getMovementPath(
+        [
+          this.state.nations[this.state.currentNation].pieces[
+            this.state.selected
+          ].x,
+          this.state.nations[this.state.currentNation].pieces[
+            this.state.selected
+          ].y
+        ],
+        [hex.x, hex.y],
+        this.state.nations[this.state.currentNation].pieces[this.state.selected]
+          .movementLeft
+      );
+      if (path !== undefined) {
+        this.setPath(path[2], "white");
+      }
     } else {
       this.clearPath();
     }
+    this.forceUpdate();
   }
 
   handleFoundCity(e) {
     e.preventDefault();
     this.clearPath();
-    this.clearPathOld();
+    this.clearPathPlanned();
     if (this.state.selected !== undefined) {
       if (
         this.state.nations[this.state.currentNation].pieces[this.state.selected]
@@ -659,50 +784,43 @@ class App extends Component {
   handleTurn(e) {
     e.preventDefault();
     this.clearPath();
-    this.clearPathOld();
-    for (
-      let i = 0;
-      i < this.state.nations[this.state.currentNation].pieces.length;
-      i++
-    ) {
-      if (
-        this.state.nations[this.state.currentNation].pieces[i].targetHex !==
-        undefined
-      ) {
-        let path = this.pathfind(
-          [
-            this.state.nations[this.state.currentNation].pieces[i].x,
-            this.state.nations[this.state.currentNation].pieces[i].y
-          ],
-          this.state.nations[this.state.currentNation].pieces[i].targetHex
-        ).reverse();
-        let costLeft = this.state.nations[this.state.currentNation].pieces[i]
-          .movement;
-        let hex = [0, 0];
-        while (costLeft > 0 && path.length > 0) {
-          hex = path.splice(0, 1)[0];
-          costLeft -= this.state.hexGrid[hex[0]][hex[1]].movementCost;
+    this.clearPathPlanned();
+    this.setState(
+      state => {
+        state.currentNation++;
+        if (state.currentNation >= this.state.nations.length) {
+          state.currentNation = 0;
         }
-        this.setState(state => {
-          state.hexGrid[hex[0]][hex[1]].piece = { ownedBy: state.currentNation, type: "settler", piece: i }
-          state.hexGrid[state.nations[state.currentNation].pieces[i].x][
-            state.nations[state.currentNation].pieces[i].y
-          ].piece = undefined;
-          state.nations[state.currentNation].pieces[i].x = hex[0];
-          state.nations[state.currentNation].pieces[i].y = hex[1];
-          if (state.nations[state.currentNation].pieces[i].targetHex === hex) {
-            state.nations[state.currentNation].pieces[i].targetHex = undefined;
+        state.selected = undefined;
+      },
+      () => {
+        for (
+          let i = 0;
+          i < this.state.nations[this.state.currentNation].pieces.length;
+          i++
+        ) {
+          if (
+            this.state.nations[this.state.currentNation].pieces[i].targetHex !==
+            undefined
+          ) {
+            this.movePiece(
+              this.state.currentNation,
+              i,
+              this.getMovementPath(
+                [
+                  this.state.nations[this.state.currentNation].pieces[i].x,
+                  this.state.nations[this.state.currentNation].pieces[i].y
+                ],
+                this.state.nations[this.state.currentNation].pieces[i]
+                  .targetHex,
+                this.state.nations[this.state.currentNation].pieces[i].movement
+              )[0]
+            );
           }
-        });
+        }
+        this.forceUpdate();
       }
-    }
-    this.setState(state => {
-      state.currentNation++;
-      if (state.currentNation >= this.state.nations.length) {
-        state.currentNation = 0;
-      }
-      state.selected = undefined;
-    });
+    );
     this.forceUpdate();
   }
 
@@ -884,7 +1002,22 @@ class App extends Component {
                     this.handleHexHover(e);
                   }}
                 />
-                {value.inPathOld ? (
+                {value.ableMovement !== undefined ? (
+                  <use
+                    xlinkHref="#pathShow"
+                    stroke={value.ableMovement}
+                    strokeWidth=".75vw"
+                    onClick={e => {
+                      this.handleHexClick(e);
+                    }}
+                    onMouseOver={e => {
+                      this.handleHexHover(e);
+                    }}
+                  />
+                ) : (
+                  <use />
+                )}
+                {value.plannedMovement ? (
                   <use
                     xlinkHref="#pathShow"
                     stroke={this.state.nations[this.state.currentNation].color}
@@ -899,21 +1032,7 @@ class App extends Component {
                 ) : (
                   <use />
                 )}
-                {value.inPath ? (
-                  <use
-                    xlinkHref="#pathShow"
-                    stroke="white"
-                    strokeWidth=".75vw"
-                    onClick={e => {
-                      this.handleHexClick(e);
-                    }}
-                    onMouseOver={e => {
-                      this.handleHexHover(e);
-                    }}
-                  />
-                ) : (
-                  <use />
-                )}
+
                 {value.piece !== undefined ? (
                   <use
                     xlinkHref={"#" + value.piece.type}
@@ -1225,268 +1344,3 @@ class App extends Component {
 }
 
 export default App;
-
-/* 
-        <div id="grid">
-          {this.getHexes().map(value => {
-            return (
-              <svg
-                className="hex"
-                width={"9.5%"}
-                key={value.x + " " + value.y}
-                data-position={[value.x, value.y]}
-                onClick={e => {
-                  this.handleClick(e);
-                }}
-                onMouseOver={e => {
-                  this.handleMouseOver(e);
-                }}
-              >
-                <use
-                  xlinkHref="#hexagon"
-                />
-              </svg>
-            );
-            /* this.getHexDiv(value, "9.5%", false); 
-          })}
-        </div>
-        <div className="sidePanel white">
-          <div className="summary">
-            <div className="hexSummaryContainer">
-              <div>
-                {this.getHexDiv(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ],
-                  "10",
-                  true
-                )}
-              </div>
-              <h1 className="unselectable">
-                {Number(this.state.currentCoords[1]) +
-                  1 +
-                  ", " +
-                  Number(Number(this.state.currentCoords[0]) + 1)}
-              </h1>
-            </div>
-            <div className="dataPadding">
-              <h1>
-                {"Type: " +
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].type}
-              </h1>
-              <h1>
-                {"Food: " +
-                  Math.round(
-                    this.state.hexGrid[this.state.currentCoords[0]][
-                      this.state.currentCoords[1]
-                    ].food
-                  )}
-              </h1>
-              <h1>
-                {"Production: " +
-                  Math.round(
-                    this.state.hexGrid[this.state.currentCoords[0]][
-                      this.state.currentCoords[1]
-                    ].production
-                  )}
-              </h1>
-              <h1>
-                {"Current Owner: " +
-                  Number(
-                    this.state.hexGrid[this.state.currentCoords[0]][
-                      this.state.currentCoords[1]
-                    ].claimedBy + 1
-                  )}
-              </h1>
-            </div>
-          </div>
-          <h1>
-            {"Resource: " +
-              this.state.hexGrid[this.state.currentCoords[0]][
-                this.state.currentCoords[1]
-              ].resource.name}
-          </h1>
-          <div
-            className={
-              "nationInfoContainer " +
-              this.borderCSS(this.state.currentNation) +
-              this.tileHiddenCSS()
-            }
-          >
-            <h1>
-              {"Crop Production: " +
-                Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].cropProduction
-                ) +
-                "/" +
-                Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].cropLevel
-                )}
-            </h1>
-            <div className="productionContainer">
-              <h1>Change by:</h1>
-              <input
-                id="cropProductionInput"
-                onKeyUp={e => {
-                  this.productionAccept(e, "crop");
-                }}
-                onChange={e => {
-                  this.productionChange(e, "crop");
-                }}
-                className="inputNumber"
-                defaultValue="0"
-                type="number"
-                min={
-                  -(this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].cropProduction >
-                  this.state.nations[this.state.currentNation].storedCrop * 2
-                    ? this.state.nations[this.state.currentNation].storedCrop *
-                      2
-                    : this.state.hexGrid[this.state.currentCoords[0]][
-                        this.state.currentCoords[1]
-                      ].cropProduction)
-                }
-                max={this.getMaximumInput("crop")}
-              />
-              <div
-                className="button acceptButton unselectable"
-                onClick={e => {
-                  this.productionAccept(e, "crop");
-                }}
-              >
-                <h1>Apply</h1>
-              </div>
-            </div>
-            <h1>
-              {"Mine Production: " +
-                Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].mineProduction
-                ) +
-                "/" +
-                Math.round(
-                  this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].mineLevel
-                )}
-            </h1>
-            <div className="productionContainer">
-              <h1>Change by:</h1>
-              <input
-                id="mineProductionInput"
-                onKeyUp={e => {
-                  this.productionAccept(e, "mine");
-                }}
-                onChange={e => {
-                  this.productionChange(e, "mine");
-                }}
-                className="inputNumber"
-                defaultValue="0"
-                type="number"
-                min={
-                  -(this.state.hexGrid[this.state.currentCoords[0]][
-                    this.state.currentCoords[1]
-                  ].mineProduction >
-                  this.state.nations[this.state.currentNation].storedCrop * 2
-                    ? this.state.nations[this.state.currentNation].storedCrop *
-                      2
-                    : this.state.hexGrid[this.state.currentCoords[0]][
-                        this.state.currentCoords[1]
-                      ].mineProduction)
-                }
-                max={this.getMaximumInput("mine")}
-              />
-              <div
-                className="button acceptButton unselectable"
-                onClick={e => {
-                  this.productionAccept(e, "mine");
-                }}
-              >
-                <h1>Apply</h1>
-              </div>
-            </div>
-          </div>
-          <div className="buttonContainer">
-            <div className={this.claimCSS()} onClick={e => this.handleClaim(e)}>
-              <h1>Claim</h1>
-            </div>
-            <div
-              className={this.cancelCSS()}
-              onClick={e => this.cancelClick(e)}
-            >
-              <h1>Cancel</h1>
-            </div>
-          </div>
-          {/*<div className={"buttonContainer" + this.hideNation()}>
-            {this.state.nations.map((value, index) => {
-              return (
-                <div
-                  key={"Nation Button" + index}
-                  className={
-                    "button unselectable nationButton " + this.borderCSS(index)
-                  }
-                  onClick={e => {
-                    this.changeNation(e, index);
-                  }}
-                >
-                  <h1>{index + 1}</h1>
-                </div>
-              );
-            })}
-          </div>}
-          <div
-            className={
-              "nationInfoContainer " + this.borderCSS(this.state.currentNation)
-            }
-          >
-            <h1>
-              {"Population: " +
-                Math.round(
-                  this.state.nations[this.state.currentNation].population
-                )}
-            </h1>
-            <h1>
-              {"Crop Production: " +
-                Math.round(
-                  this.getTotalCropProduction(this.state.currentNation)
-                ) +
-                "/" +
-                Math.round(this.getTotalCrop(this.state.currentNation))}
-            </h1>
-            <h1>
-              {"Crop Stored: " +
-                this.state.nations[this.state.currentNation].storedCrop +
-                " " +
-                this.getProductionCost()}
-            </h1>
-            <h1>
-              {"Mine Production: " +
-                Math.round(
-                  this.getTotalMineProduction(this.state.currentNation)
-                ) +
-                "/" +
-                Math.round(this.getTotalMine(this.state.currentNation))}
-            </h1>
-            <h1>
-              {"Mine Stored: " +
-                this.state.nations[this.state.currentNation].storedMine}
-            </h1>
-          </div>
-          <div className="buttonContainer">
-            <div
-              className="button confirmColor confirmColorH unselectable"
-              onClick={e => this.handleTurn(e)}
-            >
-              <h1>Next Turn</h1>
-            </div>
-          </div>
-        </div>
-        */
