@@ -8,7 +8,8 @@ It is meant to teach kids the concepts of economics, specifically the concept of
 2. Unzip the repository
 3. Download and install Node.js
 4. Open Terminal and navigate to the unzipped repository
-5. Use the command "npm start" once in the repository - This will open up a tab in your web browser with a localhost of the app
+5. Use the command "npm install" to install all dependencies
+6. Use the command "npm start" once in the repository - This will open up a tab in your web browser with a localhost of the app
 
 
 ## Available Scripts
