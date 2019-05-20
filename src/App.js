@@ -1260,12 +1260,16 @@ class App extends Component {
             </div>
           </div>
           <div className="sectionContainer">
-            <h1>
-              {this.state.nations[this.state.currentNation].name
-                .charAt(0)
-                .toUpperCase() +
-                this.state.nations[this.state.currentNation].name.slice(1)}
-            </h1>
+            <div className="summarySectionContainer">
+              <div style={{width: "100%", display: "flex", flexShrink: "1", background: this.state.nations[this.state.currentNation].color, margin: ".25vw", borderRadius: ".25vw"}}/>
+              <h1>
+                {this.state.nations[this.state.currentNation].name
+                  .charAt(0)
+                  .toUpperCase() +
+                  this.state.nations[this.state.currentNation].name.slice(1)}
+              </h1>
+              <div style={{width: "100%", display: "flex", flexShrink: "1", background: this.state.nations[this.state.currentNation].color, margin: ".25vw", borderRadius: ".25vw"}}/>
+            </div>
             <div className="summarySectionContainer">
               <h3>{"Food: " + 0}</h3>
               <h3>{"Production: " + 0}</h3>
