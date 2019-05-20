@@ -603,7 +603,10 @@ class App extends Component {
           }
         );
       }
-    } else {
+    } else if (
+      this.state.hexGrid[this.state.selected[0]][this.state.selected[1]].piece
+        .type !== "city"
+    ) {
       if (this.state.hexGrid[hex.x][hex.y].piece !== undefined) {
         if (
           this.state.hexGrid[hex.x][hex.y].piece.ownedBy ===
